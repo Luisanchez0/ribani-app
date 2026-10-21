@@ -1,0 +1,1637 @@
+Index: app/src/main/java/com/ribani/app/screens/home/HomeScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.home\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.layout.width\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.HealthAndSafety\r\nimport androidx.compose.material.icons.rounded.Sos\r\nimport androidx.compose.material.icons.rounded.Verified\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.ButtonDefaults\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.ribani.app.ui.theme.ContenedorVerdeSuave\r\nimport com.ribani.app.ui.theme.Rojo\r\nimport com.ribani.app.ui.theme.TextoPrincipal\r\nimport com.ribani.app.ui.theme.VerdeClaro\r\nimport com.ribani.app.ui.theme.VerdeEstadoOk\r\nimport java.time.LocalTime\r\nimport java.time.format.DateTimeFormatter\r\nimport java.util.Locale\r\nimport kotlinx.coroutines.delay\r\n\r\n\r\n@Composable\r\nfun HomeScreen(\r\n    onSosClick: () -> Unit,\r\n    isMonitoring: Boolean\r\n) {\r\n    val currentTime = remember { mutableStateOf(LocalTime.now()) }\r\n\r\n    LaunchedEffect(Unit) {\r\n        while (true) {\r\n            currentTime.value = LocalTime.now()\r\n            delay(1_000)\r\n        }\r\n    }\r\n\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .background(VerdeClaro.copy(alpha = 0.12f))\r\n    ) {\r\n\r\n        Column(\r\n            modifier = Modifier\r\n                .weight(1f)\r\n                .fillMaxWidth()\r\n                .padding(horizontal = 24.dp),\r\n            horizontalAlignment = Alignment.CenterHorizontally\r\n        ) {\r\n\r\n            Spacer(modifier = Modifier.height(48.dp))\r\n\r\n            Row(verticalAlignment = Alignment.CenterVertically) {\r\n                Icon(\r\n                    imageVector = Icons.Rounded.HealthAndSafety,\r\n                    contentDescription = null,\r\n                    modifier = Modifier.size(72.dp),\r\n                    tint = VerdeClaro\r\n                )\r\n                Column(modifier = Modifier.padding(start = 16.dp)) {\r\n                    Text(\r\n                        text = \"RIBANI\",\r\n                        fontSize = 38.sp,\r\n                        fontWeight = FontWeight.Bold,\r\n                        color = TextoPrincipal\r\n                    )\r\n                    Text(\r\n                        text = \"Guardia de caídas\",\r\n                        fontSize = 17.sp,\r\n                        color = TextoPrincipal\r\n                    )\r\n                }\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(28.dp))\r\n\r\n            // Estado del sistema: chip flotante sobre la tarjeta\r\n            Row(\r\n                verticalAlignment = Alignment.CenterVertically,\r\n                modifier = Modifier\r\n                    .clip(CircleShape)\r\n                    .background(ContenedorVerdeSuave)\r\n                    .padding(horizontal = 16.dp, vertical = 8.dp)\r\n            ) {\r\n                Box(\r\n                    modifier = Modifier\r\n                        .size(14.dp)\r\n                        .clip(CircleShape)\r\n                        .background(if (isMonitoring) VerdeEstadoOk else Rojo)\r\n                )\r\n                Spacer(modifier = Modifier.width(10.dp))\r\n                Text(\r\n                    text = if (isMonitoring) {\r\n                        \"Sistema activado y monitoreando\"\r\n                    } else {\r\n                        \"Sensores no disponibles\"\r\n                    },\r\n                    fontSize = 15.sp,\r\n                    fontWeight = FontWeight.Medium,\r\n                    color = TextoPrincipal\r\n                )\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(16.dp))\r\n\r\n            // Tarjeta de estado principal\r\n            Column(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .clip(RoundedCornerShape(28.dp))\r\n                    .background(Color.White)\r\n                    .padding(vertical = 28.dp),\r\n                horizontalAlignment = Alignment.CenterHorizontally\r\n            ) {\r\n\r\n                Text(\r\n                    text = currentTime.value.format(\r\n                        DateTimeFormatter.ofPattern(\"hh:mm a\", Locale.getDefault())\r\n                    ),\r\n                    fontSize = 42.sp,\r\n                    fontWeight = FontWeight.SemiBold,\r\n                    color = TextoPrincipal\r\n                )\r\n\r\n                Spacer(modifier = Modifier.height(24.dp))\r\n\r\n                Icon(\r\n                    imageVector = Icons.Rounded.Verified,\r\n                    contentDescription = if (isMonitoring) \"Todo está bien\" else \"Atención requerida\",\r\n                    modifier = Modifier.size(84.dp),\r\n                    tint = if (isMonitoring) VerdeEstadoOk else Rojo\r\n                )\r\n\r\n                Spacer(modifier = Modifier.height(12.dp))\r\n\r\n                Text(\r\n                    text = if (isMonitoring) \"Todo está bien\" else \"Monitoreo inactivo\",\r\n                    fontSize = 26.sp,\r\n                    fontWeight = FontWeight.SemiBold,\r\n                    color = TextoPrincipal\r\n                )\r\n\r\n                Text(\r\n                    text = if (isMonitoring) \"No hay alertas recientes\" else \"Revisa la conexión de sensores\",\r\n                    fontSize = 18.sp,\r\n                    color = Color(0xFF697077),\r\n                    modifier = Modifier.padding(top = 6.dp)\r\n                )\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(24.dp))\r\n\r\n            Button(\r\n                onClick = onSosClick,\r\n                modifier = Modifier.size(140.dp),\r\n                shape = CircleShape,\r\n                colors = ButtonDefaults.buttonColors(\r\n                    containerColor = Rojo\r\n                ),\r\n                contentPadding = PaddingValues(0.dp)\r\n            ) {\r\n                Column(horizontalAlignment = Alignment.CenterHorizontally) {\r\n                    Icon(\r\n                        imageVector = Icons.Rounded.Sos,\r\n                        contentDescription = null,\r\n                        modifier = Modifier.size(40.dp),\r\n                        tint = Color.White\r\n                    )\r\n                    Text(\r\n                        text = \"SOS\",\r\n                        fontSize = 32.sp,\r\n                        fontWeight = FontWeight.Bold,\r\n                        color = Color.White\r\n                    )\r\n                }\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(16.dp))\r\n\r\n            Text(\r\n                text = \"Toca el botón para pedir ayuda de inmediato\",\r\n                fontSize = 14.sp,\r\n                color = Color(0xFF697077)\r\n            )\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/home/HomeScreen.kt b/app/src/main/java/com/ribani/app/screens/home/HomeScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/home/HomeScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/home/HomeScreen.kt	(date 1792307553351)
+@@ -1,6 +1,8 @@
+ package com.ribani.app.screens.home
+ 
+ import androidx.compose.foundation.background
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.PaddingValues
+@@ -8,6 +10,7 @@
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.Row
+ import androidx.compose.foundation.layout.size
+@@ -18,6 +21,7 @@
+ import androidx.compose.material.icons.rounded.HealthAndSafety
+ import androidx.compose.material.icons.rounded.Sos
+ import androidx.compose.material.icons.rounded.Verified
++import androidx.compose.material.icons.rounded.WarningAmber
+ import androidx.compose.material3.Button
+ import androidx.compose.material3.ButtonDefaults
+ import androidx.compose.material3.Icon
+@@ -29,6 +33,7 @@
+ import androidx.compose.runtime.remember
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.LocalConfiguration
+ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.text.font.FontWeight
+@@ -51,6 +56,7 @@
+     isMonitoring: Boolean
+ ) {
+     val currentTime = remember { mutableStateOf(LocalTime.now()) }
++    val locale = LocalConfiguration.current.locales[0]
+ 
+     LaunchedEffect(Unit) {
+         while (true) {
+@@ -62,12 +68,12 @@
+     Column(
+         modifier = Modifier
+             .fillMaxSize()
++            .verticalScroll(rememberScrollState())
+             .background(VerdeClaro.copy(alpha = 0.12f))
+     ) {
+ 
+         Column(
+             modifier = Modifier
+-                .weight(1f)
+                 .fillMaxWidth()
+                 .padding(horizontal = 24.dp),
+             horizontalAlignment = Alignment.CenterHorizontally
+@@ -82,7 +88,7 @@
+                     modifier = Modifier.size(72.dp),
+                     tint = VerdeClaro
+                 )
+-                Column(modifier = Modifier.padding(start = 16.dp)) {
++                Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+                     Text(
+                         text = "RIBANI",
+                         fontSize = 38.sp,
+@@ -134,13 +140,13 @@
+                     .fillMaxWidth()
+                     .clip(RoundedCornerShape(28.dp))
+                     .background(Color.White)
+-                    .padding(vertical = 28.dp),
++                    .padding(horizontal = 16.dp, vertical = 28.dp),
+                 horizontalAlignment = Alignment.CenterHorizontally
+             ) {
+ 
+                 Text(
+                     text = currentTime.value.format(
+-                        DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
++                        DateTimeFormatter.ofPattern("hh:mm a", locale)
+                     ),
+                     fontSize = 42.sp,
+                     fontWeight = FontWeight.SemiBold,
+@@ -150,8 +156,8 @@
+                 Spacer(modifier = Modifier.height(24.dp))
+ 
+                 Icon(
+-                    imageVector = Icons.Rounded.Verified,
+-                    contentDescription = if (isMonitoring) "Todo está bien" else "Atención requerida",
++                    imageVector = if (isMonitoring) Icons.Rounded.Verified else Icons.Rounded.WarningAmber,
++                    contentDescription = null,
+                     modifier = Modifier.size(84.dp),
+                     tint = if (isMonitoring) VerdeEstadoOk else Rojo
+                 )
+@@ -159,14 +165,14 @@
+                 Spacer(modifier = Modifier.height(12.dp))
+ 
+                 Text(
+-                    text = if (isMonitoring) "Todo está bien" else "Monitoreo inactivo",
++                    text = if (isMonitoring) "Monitoreo activo" else "Monitoreo inactivo",
+                     fontSize = 26.sp,
+                     fontWeight = FontWeight.SemiBold,
+                     color = TextoPrincipal
+                 )
+ 
+                 Text(
+-                    text = if (isMonitoring) "No hay alertas recientes" else "Revisa la conexión de sensores",
++                    text = if (isMonitoring) "Sensores activos en este dispositivo" else "Revisa la conexión de sensores",
+                     fontSize = 18.sp,
+                     color = Color(0xFF697077),
+                     modifier = Modifier.padding(top = 6.dp)
+@@ -177,7 +183,7 @@
+ 
+             Button(
+                 onClick = onSosClick,
+-                modifier = Modifier.size(140.dp),
++                modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
+                 shape = CircleShape,
+                 colors = ButtonDefaults.buttonColors(
+                     containerColor = Rojo
+Index: app/src/main/java/com/ribani/app/sensors/RibaniMonitoringService.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@file:SuppressLint(\"MissingPermission\", \"UseFullScreenIntent\")\r\n\r\npackage com.ribani.app.sensors\r\n\r\nimport android.annotation.SuppressLint\r\nimport android.Manifest\r\nimport android.app.Notification\r\nimport android.app.NotificationChannel\r\nimport android.app.NotificationManager\r\nimport android.app.PendingIntent\r\nimport android.app.Service\r\nimport android.content.pm.PackageManager\r\nimport android.content.Intent\r\nimport android.os.Build\r\nimport android.os.IBinder\r\nimport androidx.core.app.NotificationCompat\r\nimport androidx.core.app.NotificationManagerCompat\r\nimport androidx.core.content.ContextCompat\r\nimport com.ribani.app.FallAlertActivity\r\nimport com.ribani.app.R\r\nimport com.ribani.app.data.local.SessionManager\r\nimport com.ribani.app.data.repository.AlertasRepository\r\nimport com.ribani.app.data.repository.UbicacionesEscucha\r\nimport com.ribani.app.data.repository.UbicacionesRepository\r\nimport kotlinx.coroutines.CoroutineScope\r\nimport kotlinx.coroutines.Dispatchers\r\nimport kotlinx.coroutines.SupervisorJob\r\nimport kotlinx.coroutines.cancel\r\nimport kotlinx.coroutines.flow.first\r\nimport kotlinx.coroutines.launch\r\n\r\n/**\r\n * Servicio en primer plano: monitoreo de caídas (RIBANI_SENSOR) + escucha\r\n * continua de ubicación (UbicacionesRepository / POST /ubicaciones en cada\r\n * fix) mientras la app está abierta o en segundo plano.\r\n */\r\nclass RibaniMonitoringService : Service() {\r\n    private lateinit var sensorManager: RibaniSensorManager\r\n    private var escuchaUbicaciones: UbicacionesEscucha? = null\r\n    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)\r\n\r\n    override fun onCreate() {\r\n        super.onCreate()\r\n        createNotificationChannel()\r\n        sensorManager = RibaniSensorManager(applicationContext) {\r\n            showFallAlert()\r\n        }\r\n        startForeground(NOTIFICATION_ID, monitoringNotification())\r\n        sensorManager.start()\r\n    }\r\n\r\n    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {\r\n        // Ubicaciones: solo si hay sesión con un adulto mayor autenticado.\r\n        // Se chequea en cada onStartCommand para detener/arrancar tras login o logout.\r\n        serviceScope.launch {\r\n            val haySesion = SessionManager(applicationContext).isLoggedIn.first()\r\n            if (haySesion) {\r\n                arrancarEscuchaSiHaceFalta()\r\n            } else {\r\n                detenerEscucha()\r\n            }\r\n        }\r\n        return START_STICKY\r\n    }\r\n\r\n    private fun arrancarEscuchaSiHaceFalta() {\r\n        val hayPermiso = ContextCompat.checkSelfPermission(\r\n            this,\r\n            Manifest.permission.ACCESS_FINE_LOCATION,\r\n        ) == PackageManager.PERMISSION_GRANTED ||\r\n            ContextCompat.checkSelfPermission(\r\n                this,\r\n                Manifest.permission.ACCESS_COARSE_LOCATION,\r\n            ) == PackageManager.PERMISSION_GRANTED\r\n\r\n        if (!hayPermiso) return\r\n\r\n        if (escuchaUbicaciones == null) {\r\n            UbicacionesRepository.inicializar(applicationContext)\r\n            escuchaUbicaciones = UbicacionesRepository.iniciarEscucha(applicationContext)\r\n            escuchaUbicaciones?.iniciar()\r\n        }\r\n    }\r\n\r\n    private fun detenerEscucha() {\r\n        escuchaUbicaciones?.detener()\r\n        escuchaUbicaciones = null\r\n    }\r\n\r\n    override fun onDestroy() {\r\n        detenerEscucha()\r\n        sensorManager.stop()\r\n        serviceScope.cancel()\r\n        UbicacionesRepository.destructor()\r\n        super.onDestroy()\r\n    }\r\n\r\n    override fun onBind(intent: Intent?): IBinder? = null\r\n\r\n    private fun showFallAlert() {\r\n        // La alerta CAIDA se registra en el backend al detectarla (regla:\r\n        // toda posible caída deja alerta abierta), independientemente de\r\n        // la confirmación del adulto en la pantalla.\r\n        serviceScope.launch {\r\n            AlertasRepository.enviarAlerta(\r\n                context = this@RibaniMonitoringService,\r\n                tipo = \"CAIDA\",\r\n                titulo = \"Posible caída detectada\",\r\n                descripcion = \"RIBANI detectó una posible caída del adulto mayor \" +\r\n                    \"(caída libre, impacto, rotación e inactividad).\",\r\n            )\r\n        }\r\n\r\n        val intent = Intent(this, FallAlertActivity::class.java).apply {\r\n            flags = Intent.FLAG_ACTIVITY_NEW_TASK or\r\n                Intent.FLAG_ACTIVITY_SINGLE_TOP or\r\n                Intent.FLAG_ACTIVITY_CLEAR_TOP\r\n        }\r\n        val pendingIntent = PendingIntent.getActivity(\r\n            this,\r\n            FALL_ALERT_REQUEST_CODE,\r\n            intent,\r\n            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE\r\n        )\r\n\r\n        val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)\r\n            .setSmallIcon(R.mipmap.ic_launcher)\r\n            .setContentTitle(\"Posible caída detectada\")\r\n            .setContentText(\"¿Te encuentras bien?\")\r\n            .setPriority(NotificationCompat.PRIORITY_MAX)\r\n            .setCategory(NotificationCompat.CATEGORY_ALARM)\r\n            .setAutoCancel(true)\r\n            .setOngoing(true)\r\n            .setContentIntent(pendingIntent)\r\n            .setFullScreenIntent(pendingIntent, true)\r\n            .build()\r\n\r\n\r\n        if (canPostNotifications()) {\r\n            NotificationManagerCompat.from(this).notify(ALERT_NOTIFICATION_ID, notification)\r\n        }\r\n    }\r\n\r\n    private fun monitoringNotification(): Notification =\r\n        NotificationCompat.Builder(this, MONITORING_CHANNEL_ID)\r\n            .setSmallIcon(R.mipmap.ic_launcher)\r\n            .setContentTitle(\"RIBANI activo\")\r\n            .setContentText(\"Monitoreando sensores de seguridad\")\r\n            .setOngoing(true)\r\n            .setCategory(NotificationCompat.CATEGORY_SERVICE)\r\n            .build()\r\n\r\n    private fun createNotificationChannel() {\r\n        val manager = getSystemService(NotificationManager::class.java)\r\n        manager.createNotificationChannel(\r\n            NotificationChannel(\r\n                MONITORING_CHANNEL_ID,\r\n                \"Monitoreo de RIBANI\",\r\n                NotificationManager.IMPORTANCE_LOW\r\n            )\r\n        )\r\n        manager.createNotificationChannel(\r\n            NotificationChannel(\r\n                ALERT_CHANNEL_ID,\r\n                \"Alertas de emergencia\",\r\n                NotificationManager.IMPORTANCE_HIGH\r\n            ).apply {\r\n                setBypassDnd(true)\r\n                lockscreenVisibility = Notification.VISIBILITY_PUBLIC\r\n            }\r\n        )\r\n    }\r\n\r\n    private fun canPostNotifications(): Boolean =\r\n        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||\r\n            ContextCompat.checkSelfPermission(\r\n                this,\r\n                Manifest.permission.POST_NOTIFICATIONS\r\n            ) == PackageManager.PERMISSION_GRANTED\r\n\r\n    private companion object {\r\n        const val MONITORING_CHANNEL_ID = \"ribani_monitoring\"\r\n        const val ALERT_CHANNEL_ID = \"ribani_emergency\"\r\n        const val NOTIFICATION_ID = 100\r\n        const val ALERT_NOTIFICATION_ID = 101\r\n        const val FALL_ALERT_REQUEST_CODE = 102\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/sensors/RibaniMonitoringService.kt b/app/src/main/java/com/ribani/app/sensors/RibaniMonitoringService.kt
+--- a/app/src/main/java/com/ribani/app/sensors/RibaniMonitoringService.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/sensors/RibaniMonitoringService.kt	(date 1792305850159)
+@@ -28,6 +28,8 @@
+ import kotlinx.coroutines.cancel
+ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.launch
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
+ 
+ /**
+  * Servicio en primer plano: monitoreo de caídas (RIBANI_SENSOR) + escucha
+@@ -46,7 +48,6 @@
+             showFallAlert()
+         }
+         startForeground(NOTIFICATION_ID, monitoringNotification())
+-        sensorManager.start()
+     }
+ 
+     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+@@ -55,9 +56,14 @@
+         serviceScope.launch {
+             val haySesion = SessionManager(applicationContext).isLoggedIn.first()
+             if (haySesion) {
++                sensorManager.start()
++                _monitoring.value = sensorManager.isMonitoring.value
+                 arrancarEscuchaSiHaceFalta()
+             } else {
+                 detenerEscucha()
++                sensorManager.stop()
++                _monitoring.value = false
++                stopSelf()
+             }
+         }
+         return START_STICKY
+@@ -88,6 +94,7 @@
+     }
+ 
+     override fun onDestroy() {
++        _monitoring.value = false
+         detenerEscucha()
+         sensorManager.stop()
+         serviceScope.cancel()
+@@ -178,7 +185,9 @@
+                 Manifest.permission.POST_NOTIFICATIONS
+             ) == PackageManager.PERMISSION_GRANTED
+ 
+-    private companion object {
++    companion object {
++        private val _monitoring = MutableStateFlow(false)
++        val monitoring = _monitoring.asStateFlow()
+         const val MONITORING_CHANNEL_ID = "ribani_monitoring"
+         const val ALERT_CHANNEL_ID = "ribani_emergency"
+         const val NOTIFICATION_ID = 100
+Index: app/src/main/java/com/ribani/app/screens/contacts/ContactsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.contacts\r\n\r\nimport android.content.Intent\r\nimport android.net.Uri\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.foundation.lazy.items\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Call\r\nimport androidx.compose.material.icons.rounded.Contacts\r\nimport androidx.compose.material3.CircularProgressIndicator\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.platform.LocalContext\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.ribani.app.data.remote.ApiClient\r\nimport com.ribani.app.data.remote.ContactoResponse\r\nimport com.ribani.app.ui.theme.TextoNeutro\r\nimport com.ribani.app.ui.theme.TextoOscuro\r\n\r\n/**\r\n * Contactos de emergencia del adulto mayor (GET /contactos).\r\n * Al presionar una tarjeta se abre directamente la app de llamadas\r\n * del sistema (marcador) con el número del contacto listo para llamar.\r\n */\r\n@Composable\r\nfun ContactsScreen() {\r\n    val context = LocalContext.current\r\n    var contactos by remember { mutableStateOf<List<ContactoResponse>?>(null) }\r\n    var error by remember { mutableStateOf<String?>(null) }\r\n\r\n    LaunchedEffect(Unit) {\r\n        try {\r\n            contactos = ApiClient.contactosService.listarContactos()\r\n        } catch (e: Exception) {\r\n            error = \"No se pudieron cargar los contactos. Intenta de nuevo.\"\r\n        }\r\n    }\r\n\r\n    Column(\r\n        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 22.dp)\r\n    ) {\r\n        Row(\r\n            verticalAlignment = Alignment.Top,\r\n            modifier = Modifier.padding(bottom = 30.dp)\r\n        ) {\r\n            Icon(\r\n                Icons.Rounded.Contacts,\r\n                contentDescription = null,\r\n                modifier = Modifier.size(72.dp).padding(top = 8.dp),\r\n                tint = TextoOscuro\r\n            )\r\n            Text(\r\n                \"Mis Contactos\\nde Emergencia\",\r\n                fontSize = 35.sp,\r\n                lineHeight = 42.sp,\r\n                modifier = Modifier.padding(start = 24.dp)\r\n            )\r\n        }\r\n\r\n        when {\r\n            contactos == null && error == null -> {\r\n                Box(\r\n                    modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),\r\n                    contentAlignment = Alignment.Center\r\n                ) {\r\n                    CircularProgressIndicator(color = Color(0xFF006B3C))\r\n                }\r\n            }\r\n            error != null -> {\r\n                Text(\r\n                    error!!,\r\n                    fontSize = 22.sp,\r\n                    color = Color(0xFFB3261E),\r\n                    modifier = Modifier.padding(vertical = 20.dp)\r\n                )\r\n            }\r\n            contactos!!.isEmpty() -> {\r\n                Text(\r\n                    \"Aún no tienes contactos de emergencia.\\nTu familiar puede agregarlos desde la app web.\",\r\n                    fontSize = 22.sp,\r\n                    color = TextoNeutro,\r\n                    lineHeight = 30.sp,\r\n                    modifier = Modifier.padding(vertical = 20.dp)\r\n                )\r\n            }\r\n            else -> {\r\n                LazyColumn(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {\r\n                    items(contactos!!, key = { it.id }) { contacto ->\r\n                        ContactCard(\r\n                            name = contacto.nombre,\r\n                            phone = contacto.telefono,\r\n                            parentesco = contacto.parentesco,\r\n                            onLlamar = {\r\n                                // ACTION_DIAL: abre directamente la app de llamadas\r\n                                // (marcador) sin permiso CALL_PHONE; no marca solo.\r\n                                val intent = Intent(Intent.ACTION_DIAL).apply {\r\n                                    data = Uri.parse(\"tel:${contacto.telefono}\")\r\n                                }\r\n                                context.startActivity(intent)\r\n                            }\r\n                        )\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n/**\r\n * La BD guarda E.164 (+52 5512345678). El adulto mayor lee mejor el\r\n * número sin el código de país; para llamar siempre se usa el original.\r\n */\r\nprivate fun telefonoLegible(e164: String): String =\r\n    if (e164.startsWith(\"+\")) {\r\n        // +52 followed by local block; se agrupa con espacios\r\n        val sinCodigo = e164.drop(1)\r\n        sinCodigo.chunked(3).joinToString(\" \")\r\n    } else {\r\n        e164\r\n    }\r\n\r\n@Composable\r\nprivate fun ContactCard(\r\n    name: String,\r\n    phone: String,\r\n    parentesco: String?,\r\n    onLlamar: () -> Unit,\r\n) {\r\n    Row(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .height(108.dp)\r\n            .background(Color(0xFFE7E7E7), RoundedCornerShape(26.dp))\r\n            .clickable(onClick = onLlamar)\r\n            .padding(horizontal = 26.dp),\r\n        verticalAlignment = Alignment.CenterVertically\r\n    ) {\r\n        Icon(\r\n            Icons.Rounded.Call,\r\n            contentDescription = \"Llamar a $name\",\r\n            modifier = Modifier.size(76.dp).background(TextoNeutro, CircleShape).padding(18.dp),\r\n            tint = Color.White\r\n        )\r\n        Column(modifier = Modifier.padding(start = 28.dp)) {\r\n            Text(name, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)\r\n            Text(telefonoLegible(phone), fontSize = 21.sp, color = Color(0xFF333333))\r\n            if (!parentesco.isNullOrBlank()) {\r\n                Text(\r\n                    parentesco,\r\n                    fontSize = 17.sp,\r\n                    color = TextoNeutro\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/contacts/ContactsScreen.kt b/app/src/main/java/com/ribani/app/screens/contacts/ContactsScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/contacts/ContactsScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/contacts/ContactsScreen.kt	(date 1792305980277)
+@@ -28,6 +28,11 @@
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.mutableIntStateOf
++import androidx.compose.material3.OutlinedButton
++import androidx.compose.ui.semantics.LiveRegionMode
++import androidx.compose.ui.semantics.liveRegion
++import androidx.compose.ui.semantics.semantics
+ import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+@@ -51,8 +56,10 @@
+     val context = LocalContext.current
+     var contactos by remember { mutableStateOf<List<ContactoResponse>?>(null) }
+     var error by remember { mutableStateOf<String?>(null) }
++    var intento by remember { mutableIntStateOf(0) }
+ 
+-    LaunchedEffect(Unit) {
++    LaunchedEffect(intento) {
++        error = null
+         try {
+             contactos = ApiClient.contactosService.listarContactos()
+         } catch (e: Exception) {
+@@ -70,12 +77,12 @@
+             Icon(
+                 Icons.Rounded.Contacts,
+                 contentDescription = null,
+-                modifier = Modifier.size(72.dp).padding(top = 8.dp),
++                modifier = Modifier.size(36.dp).padding(top = 8.dp),
+                 tint = TextoOscuro
+             )
+             Text(
+                 "Mis Contactos\nde Emergencia",
+-                fontSize = 35.sp,
++                fontSize = 26.sp,
+                 lineHeight = 42.sp,
+                 modifier = Modifier.padding(start = 24.dp)
+             )
+@@ -95,8 +102,9 @@
+                     error!!,
+                     fontSize = 22.sp,
+                     color = Color(0xFFB3261E),
+-                    modifier = Modifier.padding(vertical = 20.dp)
++                    modifier = Modifier.padding(vertical = 20.dp).semantics { liveRegion = LiveRegionMode.Polite }
+                 )
++                OutlinedButton(onClick = { intento++ }) { Text("Volver a intentar") }
+             }
+             contactos!!.isEmpty() -> {
+                 Text(
+Index: app/src/main/java/com/ribani/app/notifications/MedicationActionReceiver.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.notifications\r\n\r\nimport android.content.BroadcastReceiver\r\nimport android.content.Context\r\nimport android.content.Intent\r\nimport com.ribani.app.data.repository.MedicationRepository\r\n\r\n\r\nclass MedicationActionReceiver : BroadcastReceiver() {\r\n    override fun onReceive(context: Context?, intent: Intent?) {\r\n        if (context == null || intent == null) return\r\n\r\n        val tomaId = intent.getStringExtra(MedicationNotificationContract.EXTRA_TOMA_ID)\r\n            ?: return\r\n        val notificationId = intent.getIntExtra(\r\n            MedicationNotificationContract.EXTRA_NOTIFICATION_ID, -1\r\n        )\r\n\r\n        when (intent.action) {\r\n            MedicationNotificationContract.ACTION_MARK_TAKEN -> {\r\n                MedicationRepository.markTaken(context, tomaId)\r\n            }\r\n            MedicationNotificationContract.ACTION_MARK_OMITTED -> {\r\n                MedicationRepository.markOmitted(context, tomaId)\r\n            }\r\n            else -> return\r\n        }\r\n\r\n        if (notificationId != -1) {\r\n            MedicationAlarmNotifications.cancelar(context, tomaId)\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/notifications/MedicationActionReceiver.kt b/app/src/main/java/com/ribani/app/notifications/MedicationActionReceiver.kt
+--- a/app/src/main/java/com/ribani/app/notifications/MedicationActionReceiver.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/notifications/MedicationActionReceiver.kt	(date 1792305642260)
+@@ -4,6 +4,10 @@
+ import android.content.Context
+ import android.content.Intent
+ import com.ribani.app.data.repository.MedicationRepository
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.withTimeoutOrNull
+ 
+ 
+ class MedicationActionReceiver : BroadcastReceiver() {
+@@ -16,18 +20,17 @@
+             MedicationNotificationContract.EXTRA_NOTIFICATION_ID, -1
+         )
+ 
+-        when (intent.action) {
+-            MedicationNotificationContract.ACTION_MARK_TAKEN -> {
+-                MedicationRepository.markTaken(context, tomaId)
+-            }
+-            MedicationNotificationContract.ACTION_MARK_OMITTED -> {
+-                MedicationRepository.markOmitted(context, tomaId)
+-            }
++        val estado = when (intent.action) {
++            MedicationNotificationContract.ACTION_MARK_TAKEN -> "TOMADA"
++            MedicationNotificationContract.ACTION_MARK_OMITTED -> "OMITIDA"
+             else -> return
+         }
+-
+-        if (notificationId != -1) {
+-            MedicationAlarmNotifications.cancelar(context, tomaId)
++        val pending = goAsync()
++        CoroutineScope(Dispatchers.IO).launch {
++            try {
++                val guardada = withTimeoutOrNull(8_000) { MedicationRepository.registrarDesdeAlarma(context.applicationContext, tomaId, estado) } == true
++                if (guardada && notificationId != -1) MedicationAlarmNotifications.cancelar(context, tomaId)
++            } finally { pending.finish() }
+         }
+     }
+ }
+Index: app/src/main/java/com/ribani/app/notifications/MedicationAlarmReceiver.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.notifications\r\n\r\nimport android.content.BroadcastReceiver\r\nimport android.content.Context\r\nimport android.content.Intent\r\nimport com.ribani.app.data.remote.ApiClient\r\nimport com.ribani.app.data.repository.MedicationRepository\r\n\r\n/**\r\n * Dispara la alarma full-screen (como la alerta de caída) cuando el\r\n\r\n */\r\nclass MedicationAlarmReceiver : BroadcastReceiver() {\r\n    override fun onReceive(context: Context?, intent: Intent?) {\r\n        if (context == null || intent == null) return\r\n\r\n        // Alarmas exactas se entregan aun con la app muerta (proceso nuevo).\r\n        ApiClient.init(context.applicationContext)\r\n\r\n        val tomaId = intent.getStringExtra(MedicationNotificationContract.EXTRA_TOMA_ID)\r\n            ?: return\r\n        val nombre = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_NOMBRE_MEDICAMENTO)\r\n            .orEmpty()\r\n        val dosis = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_DOSIS_MEDICAMENTO)\r\n            .orEmpty()\r\n        val horaProgramada = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_HORA_PROGRAMADA)\r\n            .orEmpty()\r\n        val ventanaSeg = intent.getIntExtra(\r\n            MedicationAlarmNotifications.EXTRA_VENTANA_SEGUNDOS, 60\r\n        )\r\n        val instrucciones = intent.getStringExtra(\r\n            MedicationAlarmNotifications.EXTRA_INSTRUCCIONES_MEDICAMENTO\r\n        )\r\n\r\n\r\n        val state = MedicationRepository.uiState.value\r\n        if (state.cargado) {\r\n            val siguePendiente = state.pendingMedications.any { it.id == tomaId }\r\n            if (!siguePendiente) return\r\n        } else {\r\n            MedicationRepository.initialize(context.applicationContext)\r\n        }\r\n\r\n        MedicationAlarmNotifications.mostrarAlarmaToma(\r\n            context = context,\r\n            tomaId = tomaId,\r\n            nombre = nombre,\r\n            dosis = dosis,\r\n            horaProgramada = horaProgramada,\r\n            ventanaSegundos = ventanaSeg,\r\n            instrucciones = instrucciones,\r\n        )\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/notifications/MedicationAlarmReceiver.kt b/app/src/main/java/com/ribani/app/notifications/MedicationAlarmReceiver.kt
+--- a/app/src/main/java/com/ribani/app/notifications/MedicationAlarmReceiver.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/notifications/MedicationAlarmReceiver.kt	(date 1792306969385)
+@@ -4,7 +4,19 @@
+ import android.content.Context
+ import android.content.Intent
+ import com.ribani.app.data.remote.ApiClient
+-import com.ribani.app.data.repository.MedicationRepository
++import com.ribani.app.data.repository.MedicationOccurrence
++import com.ribani.app.data.local.SessionManager
++import com.ribani.app.data.repository.ConfiguracionRepository
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.withTimeoutOrNull
++import java.time.Instant
++import android.app.PendingIntent
++import android.app.NotificationManager
++import androidx.core.app.NotificationCompat
++import com.ribani.app.MainActivity
++import com.ribani.app.R
+ 
+ /**
+  * Dispara la alarma full-screen (como la alerta de caída) cuando el
+@@ -19,36 +31,57 @@
+ 
+         val tomaId = intent.getStringExtra(MedicationNotificationContract.EXTRA_TOMA_ID)
+             ?: return
+-        val nombre = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_NOMBRE_MEDICAMENTO)
+-            .orEmpty()
+-        val dosis = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_DOSIS_MEDICAMENTO)
+-            .orEmpty()
+-        val horaProgramada = intent.getStringExtra(MedicationAlarmNotifications.EXTRA_HORA_PROGRAMADA)
+-            .orEmpty()
+-        val ventanaSeg = intent.getIntExtra(
+-            MedicationAlarmNotifications.EXTRA_VENTANA_SEGUNDOS, 60
+-        )
+-        val instrucciones = intent.getStringExtra(
+-            MedicationAlarmNotifications.EXTRA_INSTRUCCIONES_MEDICAMENTO
+-        )
+-
+-
+-        val state = MedicationRepository.uiState.value
+-        if (state.cargado) {
+-            val siguePendiente = state.pendingMedications.any { it.id == tomaId }
+-            if (!siguePendiente) return
+-        } else {
+-            MedicationRepository.initialize(context.applicationContext)
++        val pending = goAsync()
++        CoroutineScope(Dispatchers.IO).launch {
++        try {
++        val usuario = SessionManager(context).currentUser() ?: return@launch
++        if (intent.getStringExtra("usuario_id") != usuario.id || !ConfiguracionRepository.recordatoriosHabilitados(context, usuario.id)) return@launch
++        val snapshot = runCatching { withTimeoutOrNull(7_500) {
++            val toma = ApiClient.medicamentosService.obtenerToma(tomaId)
++            val medicamento = ApiClient.medicamentosService.obtenerMedicamento(toma.medicamento_id)
++            val configuracion = ConfiguracionRepository.obtener(context)
++            Triple(toma, medicamento, configuracion)
++        } }.getOrNull()
++        if (SessionManager(context).currentUser()?.id != usuario.id) return@launch
++        if (snapshot == null) { mostrarSinVerificar(context, tomaId); return@launch }
++        val (toma, medicamento, configuracion) = snapshot
++        if (toma.adulto_id != usuario.id || medicamento.adulto_id != usuario.id ||
++            toma.estado !in listOf("PENDIENTE", "POSPUESTA") || !medicamento.activo ||
++            !configuracion.notificaciones_habilitadas || !configuracion.recordatorio_medicamentos) {
++            MedicationAlarmNotifications.cancelar(context, tomaId)
++            return@launch
+         }
+-
++        val recordarEn = toma.recordar_en ?: toma.programada_para
++        val trigger = runCatching { Instant.parse(recordarEn) }.getOrNull()
++        if (trigger == null) { mostrarSinVerificar(context, tomaId); return@launch }
++        val dosis = medicamento.dosis.toString() + " " + medicamento.unidad_dosis
++        val hora = MedicationAlarmScheduler.horaLegible(recordarEn)
++        if (trigger.isAfter(Instant.now())) {
++            MedicationAlarmScheduler.programarUna(context, MedicationOccurrence(
++                id = tomaId, medicationId = medicamento.id, name = medicamento.nombre,
++                dosage = dosis, time = hora, programadaIso = recordarEn,
++                instrucciones = medicamento.instrucciones,
++            ), usuario.id)
++            MedicationAlarmNotifications.cancelar(context, tomaId)
++            return@launch
++        }
+         MedicationAlarmNotifications.mostrarAlarmaToma(
+-            context = context,
+-            tomaId = tomaId,
+-            nombre = nombre,
+-            dosis = dosis,
+-            horaProgramada = horaProgramada,
+-            ventanaSegundos = ventanaSeg,
+-            instrucciones = instrucciones,
++            context = context, tomaId = tomaId, nombre = medicamento.nombre,
++            dosis = dosis, horaProgramada = hora, ventanaSegundos = 60,
++            instrucciones = medicamento.instrucciones,
+         )
++        } finally { pending.finish() }
++        }
++    }
++
++    private fun mostrarSinVerificar(context: Context, tomaId: String) {
++        MedicationAlarmNotifications.ensureChannel(context)
++        val abrir = PendingIntent.getActivity(context, tomaId.hashCode(), Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
++        val aviso = NotificationCompat.Builder(context, MedicationAlarmNotifications.CHANNEL_ID)
++            .setSmallIcon(R.mipmap.ic_launcher).setContentTitle("Revisa tu recordatorio")
++            .setContentText("No pudimos verificar su estado. Abre RIBANI para actualizar.")
++            .setContentIntent(abrir).setAutoCancel(true).build()
++        try { context.getSystemService(NotificationManager::class.java).notify(MedicationAlarmNotifications.notificationIdFor(tomaId), aviso) }
++        catch (_: SecurityException) { /* Permiso de notificaciones denegado. */ }
+     }
+ }
+Index: app/src/main/java/com/ribani/app/screens/location/LocationScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.location\r\n\r\nimport android.Manifest\r\nimport android.content.Context\r\nimport android.content.pm.PackageManager\r\nimport android.location.Location\r\nimport android.location.LocationListener\r\nimport android.location.LocationManager\r\nimport android.os.Bundle\r\nimport android.os.Looper\r\nimport androidx.activity.compose.rememberLauncherForActivityResult\r\nimport androidx.activity.result.contract.ActivityResultContracts\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.LocationOn\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.OutlinedButton\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.DisposableEffect\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.rememberCoroutineScope\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.platform.LocalContext\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.core.content.ContextCompat\r\nimport com.ribani.app.data.local.SessionManager\r\nimport com.ribani.app.data.repository.UbicacionesRepository\r\nimport com.google.android.gms.maps.model.CameraPosition\r\nimport com.google.android.gms.maps.model.LatLng\r\nimport com.google.maps.android.compose.GoogleMap\r\nimport com.google.maps.android.compose.MapProperties\r\nimport com.google.maps.android.compose.MapType\r\nimport com.google.maps.android.compose.MapUiSettings\r\nimport com.google.maps.android.compose.Marker\r\nimport com.google.maps.android.compose.MarkerState\r\nimport com.google.maps.android.compose.rememberCameraPositionState\r\nimport kotlinx.coroutines.flow.first\r\nimport kotlinx.coroutines.launch\r\nimport java.time.Instant\r\nimport java.time.ZoneId\r\nimport java.time.format.DateTimeFormatter\r\nimport java.util.Locale\r\n\r\nprivate const val LOCATION_UPDATE_INTERVAL_MS = 5_000L\r\n\r\nprivate fun hasLocationPermission(context: Context): Boolean {\r\n    val fineGranted = ContextCompat.checkSelfPermission(\r\n        context,\r\n        Manifest.permission.ACCESS_FINE_LOCATION\r\n    ) == PackageManager.PERMISSION_GRANTED\r\n    val coarseGranted = ContextCompat.checkSelfPermission(\r\n        context,\r\n        Manifest.permission.ACCESS_COARSE_LOCATION\r\n    ) == PackageManager.PERMISSION_GRANTED\r\n    return fineGranted || coarseGranted\r\n}\r\n\r\nprivate fun formatTimestamp(timeMillis: Long): String {\r\n    val formatter = DateTimeFormatter.ofPattern(\"dd/MM/yyyy hh:mm:ss a\", Locale.getDefault())\r\n    return Instant.ofEpochMilli(timeMillis)\r\n        .atZone(ZoneId.systemDefault())\r\n        .format(formatter)\r\n}\r\n\r\n@Composable\r\nfun LocationScreen() {\r\n    val context = LocalContext.current\r\n    val scope = rememberCoroutineScope()\r\n    val locationManager = remember(context) {\r\n        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager\r\n    }\r\n\r\n    var hasPermission by remember { mutableStateOf(hasLocationPermission(context)) }\r\n    var currentLocation by remember { mutableStateOf<Location?>(null) }\r\n    var statusMessage by remember {\r\n        mutableStateOf(\"Activa la ubicación para ver tu posición en tiempo real.\")\r\n    }\r\n    var lastUpdateMessage by remember { mutableStateOf(\"Aún no hay una ubicación recibida.\") }\r\n\r\n    val defaultMapLocation = LatLng(19.4326, -99.1332)\r\n    val mapLocation = currentLocation?.let { LatLng(it.latitude, it.longitude) } ?: defaultMapLocation\r\n    val cameraPositionState = rememberCameraPositionState {\r\n        position = CameraPosition.fromLatLngZoom(mapLocation, 15f)\r\n    }\r\n\r\n    LaunchedEffect(mapLocation) {\r\n        cameraPositionState.position = CameraPosition.fromLatLngZoom(mapLocation, 15f)\r\n    }\r\n\r\n    val permissionLauncher = rememberLauncherForActivityResult(\r\n        contract = ActivityResultContracts.RequestMultiplePermissions()\r\n    ) { permissions ->\r\n        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||\r\n            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true\r\n        hasPermission = granted\r\n        statusMessage = if (granted) {\r\n            \"Ubicación activada. Escuchando cambios en tiempo real...\"\r\n        } else {\r\n            \"Necesitamos permiso de ubicación para mostrar tu posición.\"\r\n        }\r\n    }\r\n\r\n    LaunchedEffect(Unit) {\r\n        if (!hasPermission) {\r\n            permissionLauncher.launch(\r\n                arrayOf(\r\n                    Manifest.permission.ACCESS_FINE_LOCATION,\r\n                    Manifest.permission.ACCESS_COARSE_LOCATION\r\n                )\r\n            )\r\n        }\r\n    }\r\n\r\n    DisposableEffect(hasPermission) {\r\n        if (!hasPermission) {\r\n            onDispose { }\r\n        } else {\r\n            val locationListener = object : LocationListener {\r\n                override fun onLocationChanged(location: Location) {\r\n                    currentLocation = location\r\n                    statusMessage = \"Actualizando ubicación en tiempo real...\"\r\n                    lastUpdateMessage = \"Última actualización: ${formatTimestamp(location.time)}\"\r\n\r\n                    // Acumula en la cola del repositorio; el flush por lote\r\n                    // (POST /ubicaciones/lote, cada 30 s) hace el envío.\r\n                    UbicacionesRepository.inicializar(context)\r\n                    scope.launch { UbicacionesRepository.encolar(location) }\r\n                }\r\n\r\n                override fun onProviderEnabled(provider: String) {\r\n                    if (currentLocation == null) {\r\n                        statusMessage = \"Buscando tu ubicación...\"\r\n                    }\r\n                }\r\n\r\n                override fun onProviderDisabled(provider: String) {\r\n                    statusMessage = \"El proveedor de ubicación está desactivado. Activa GPS o red.\"\r\n                }\r\n\r\n                @Deprecated(\"Deprecated in Java\")\r\n                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {\r\n                    // Sin uso en esta implementación.\r\n                }\r\n            }\r\n\r\n            try {\r\n                val providers = listOf(\r\n                    LocationManager.GPS_PROVIDER,\r\n                    LocationManager.NETWORK_PROVIDER\r\n                ).filter { provider ->\r\n                    runCatching {\r\n                        locationManager.isProviderEnabled(provider)\r\n                    }.getOrDefault(false)\r\n                }\r\n\r\n                if (providers.isEmpty()) {\r\n                    statusMessage = \"No hay proveedores de ubicación disponibles. Activa GPS o red.\"\r\n                } else {\r\n                    providers.forEach { provider ->\r\n                        runCatching {\r\n                            locationManager.getLastKnownLocation(provider)?.let { location ->\r\n                                currentLocation = location\r\n                                lastUpdateMessage = \"Última actualización: ${formatTimestamp(location.time)}\"\r\n                                statusMessage = \"Ubicación lista. Los valores se están actualizando.\"\r\n                            }\r\n                            locationManager.requestLocationUpdates(\r\n                                provider,\r\n                                LOCATION_UPDATE_INTERVAL_MS,\r\n                                0f,\r\n                                locationListener,\r\n                                Looper.getMainLooper()\r\n                            )\r\n                        }\r\n                    }\r\n                }\r\n            } catch (_: SecurityException) {\r\n                hasPermission = false\r\n                statusMessage = \"No se pudo acceder a la ubicación. Vuelve a conceder el permiso.\"\r\n            }\r\n\r\n            onDispose {\r\n                runCatching { locationManager.removeUpdates(locationListener) }\r\n            }\r\n        }\r\n    }\r\n\r\n    Box(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .background(Color.White)\r\n    ) {\r\n        Column(\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .padding(horizontal = 24.dp, vertical = 20.dp),\r\n            horizontalAlignment = Alignment.CenterHorizontally\r\n        ) {\r\n            Row(\r\n                modifier = Modifier\r\n                    .fillMaxWidth(),\r\n                verticalAlignment = Alignment.CenterVertically\r\n            ) {\r\n                Icon(\r\n                    Icons.Rounded.LocationOn,\r\n                    contentDescription = null,\r\n                    modifier = Modifier.padding(end = 16.dp),\r\n                    tint = Color(0xFF1F2937)\r\n                )\r\n                Text(\r\n                    text = \"Mi ubicación\",\r\n                    fontSize = 32.sp,\r\n                    fontWeight = FontWeight.Normal,\r\n                    color = Color(0xFF1F2937)\r\n                )\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(16.dp))\r\n\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .height(420.dp)\r\n                    .clip(RoundedCornerShape(26.dp))\r\n                    .background(Color(0xFFEAF2FF))\r\n            ) {\r\n                GoogleMap(\r\n                    modifier = Modifier.fillMaxSize(),\r\n                    cameraPositionState = cameraPositionState,\r\n                    properties = MapProperties(\r\n                        isMyLocationEnabled = true,\r\n                        mapType = MapType.NORMAL\r\n                    ),\r\n                    uiSettings = MapUiSettings(\r\n                        zoomControlsEnabled = false,\r\n                        compassEnabled = false,\r\n                        myLocationButtonEnabled = false,\r\n                        mapToolbarEnabled = false\r\n                    )\r\n                ) {\r\n                    Marker(\r\n                        state = MarkerState(position = mapLocation),\r\n                        title = \"Tu ubicación\"\r\n                    )\r\n                }\r\n\r\n                Box(\r\n                    modifier = Modifier\r\n                        .align(Alignment.TopEnd)\r\n                        .padding(14.dp)\r\n                        .background(\r\n                            color = Color(0xFF34A853).copy(alpha = 0.9f),\r\n                            shape = RoundedCornerShape(999.dp)\r\n                        )\r\n                        .padding(horizontal = 14.dp, vertical = 8.dp)\r\n                ) {\r\n                    Text(\r\n                        text = \"En vivo\",\r\n                        fontSize = 12.sp,\r\n                        color = Color.White,\r\n                        fontWeight = FontWeight.SemiBold\r\n                    )\r\n                }\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(18.dp))\r\n\r\n            Column(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .background(\r\n                        color = Color(0xFFF5F7FA),\r\n                        shape = RoundedCornerShape(22.dp)\r\n                    )\r\n                    .padding(18.dp)\r\n            ) {\r\n                Text(\r\n                    text = statusMessage,\r\n                    fontSize = 14.sp,\r\n                    color = Color(0xFF374151),\r\n                    fontWeight = FontWeight.Medium\r\n                )\r\n\r\n                Spacer(modifier = Modifier.height(12.dp))\r\n\r\n                if (hasPermission) {\r\n                    Row(\r\n                        modifier = Modifier.fillMaxWidth(),\r\n                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween\r\n                    ) {\r\n                        Column {\r\n                            Text(\r\n                                text = \"Latitud\",\r\n                                fontSize = 12.sp,\r\n                                color = Color(0xFF6B7280)\r\n                            )\r\n                            Text(\r\n                                text = currentLocation?.let { String.format(Locale.getDefault(), \"%.6f\", it.latitude) } ?: \"--\",\r\n                                fontSize = 18.sp,\r\n                                fontWeight = FontWeight.SemiBold,\r\n                                color = Color(0xFF111827)\r\n                            )\r\n                        }\r\n\r\n                        Column(horizontalAlignment = Alignment.End) {\r\n                            Text(\r\n                                text = \"Longitud\",\r\n                                fontSize = 12.sp,\r\n                                color = Color(0xFF6B7280)\r\n                            )\r\n                            Text(\r\n                                text = currentLocation?.let { String.format(Locale.getDefault(), \"%.6f\", it.longitude) } ?: \"--\",\r\n                                fontSize = 18.sp,\r\n                                fontWeight = FontWeight.SemiBold,\r\n                                color = Color(0xFF111827)\r\n                            )\r\n                        }\r\n                    }\r\n\r\n                    Spacer(modifier = Modifier.height(14.dp))\r\n\r\n                    Text(\r\n                        text = lastUpdateMessage,\r\n                        fontSize = 13.sp,\r\n                        color = Color(0xFF4B5563)\r\n                    )\r\n\r\n                    Spacer(modifier = Modifier.height(16.dp))\r\n\r\n                    OutlinedButton(\r\n                        onClick = {\r\n                            currentLocation = null\r\n                            statusMessage = \"Buscando una nueva ubicación...\"\r\n                        },\r\n                        modifier = Modifier.fillMaxWidth()\r\n                    ) {\r\n                        Text(\"Actualizar ubicación\")\r\n                    }\r\n                } else {\r\n                    Text(\r\n                        text = \"Necesitas conceder permiso para ver tu ubicación en tiempo real.\",\r\n                        fontSize = 15.sp,\r\n                        color = Color(0xFF4B5563),\r\n                        textAlign = TextAlign.Start\r\n                    )\r\n\r\n                    Spacer(modifier = Modifier.height(16.dp))\r\n\r\n                    Button(\r\n                        onClick = {\r\n                            permissionLauncher.launch(\r\n                                arrayOf(\r\n                                    Manifest.permission.ACCESS_FINE_LOCATION,\r\n                                    Manifest.permission.ACCESS_COARSE_LOCATION\r\n                                )\r\n                            )\r\n                        },\r\n                        modifier = Modifier.fillMaxWidth()\r\n                    ) {\r\n                        Text(\"Conceder permiso\")\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/location/LocationScreen.kt b/app/src/main/java/com/ribani/app/screens/location/LocationScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/location/LocationScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/location/LocationScreen.kt	(date 1792306653812)
+@@ -11,6 +11,10 @@
+ import androidx.activity.compose.rememberLauncherForActivityResult
+ import androidx.activity.result.contract.ActivityResultContracts
+ import androidx.compose.foundation.background
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import android.content.Intent
++import com.ribani.app.sensors.RibaniMonitoringService
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Row
+@@ -104,7 +108,9 @@
+         position = CameraPosition.fromLatLngZoom(mapLocation, 15f)
+     }
+ 
++    val markerState = remember { MarkerState(position = mapLocation) }
+     LaunchedEffect(mapLocation) {
++        markerState.position = mapLocation
+         cameraPositionState.position = CameraPosition.fromLatLngZoom(mapLocation, 15f)
+     }
+ 
+@@ -114,6 +120,7 @@
+         val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+         hasPermission = granted
++        if (granted) ContextCompat.startForegroundService(context, Intent(context, RibaniMonitoringService::class.java))
+         statusMessage = if (granted) {
+             "Ubicación activada. Escuchando cambios en tiempo real..."
+         } else {
+@@ -213,6 +220,7 @@
+         Column(
+             modifier = Modifier
+                 .fillMaxSize()
++                .verticalScroll(rememberScrollState())
+                 .padding(horizontal = 24.dp, vertical = 20.dp),
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+@@ -248,7 +256,7 @@
+                     modifier = Modifier.fillMaxSize(),
+                     cameraPositionState = cameraPositionState,
+                     properties = MapProperties(
+-                        isMyLocationEnabled = true,
++                        isMyLocationEnabled = hasPermission,
+                         mapType = MapType.NORMAL
+                     ),
+                     uiSettings = MapUiSettings(
+@@ -258,8 +266,8 @@
+                         mapToolbarEnabled = false
+                     )
+                 ) {
+-                    Marker(
+-                        state = MarkerState(position = mapLocation),
++                    if (currentLocation != null) Marker(
++                        state = markerState,
+                         title = "Tu ubicación"
+                     )
+                 }
+@@ -275,7 +283,7 @@
+                         .padding(horizontal = 14.dp, vertical = 8.dp)
+                 ) {
+                     Text(
+-                        text = "En vivo",
++                        text = if (currentLocation == null) "Sin posición actual" else "Ubicación recibida",
+                         fontSize = 12.sp,
+                         color = Color.White,
+                         fontWeight = FontWeight.SemiBold
+Index: app/src/main/java/com/ribani/app/navigation/AppNavigation.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.navigation\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.CircularProgressIndicator\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.collectAsState\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.rememberCoroutineScope\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.platform.LocalContext\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.navigation.NavType\r\nimport androidx.navigation.compose.NavHost\r\nimport androidx.navigation.compose.composable\r\nimport androidx.navigation.compose.currentBackStackEntryAsState\r\nimport androidx.navigation.compose.rememberNavController\r\nimport androidx.navigation.navArgument\r\nimport com.ribani.app.data.local.SessionManager\r\nimport com.ribani.app.data.repository.AuthRepository\r\nimport com.ribani.app.data.repository.MedicationRepository\r\nimport com.ribani.app.data.repository.SessionValidation\r\nimport com.ribani.app.screens.auth.LoginScreen\r\nimport com.ribani.app.screens.auth.TwoFactorLoginScreen\r\nimport com.ribani.app.screens.auth.RegisterScreen\r\nimport com.ribani.app.screens.contacts.ContactsScreen\r\nimport com.ribani.app.screens.fall.FallAlertScreen\r\nimport com.ribani.app.screens.home.HomeScreen\r\nimport com.ribani.app.screens.invitaciones.InvitacionesScreen\r\nimport com.ribani.app.screens.location.LocationScreen\r\nimport com.ribani.app.screens.medication.MedicationDetailScreen\r\nimport com.ribani.app.screens.medication.MedicationHistoryScreen\r\nimport com.ribani.app.screens.medication.MedicationScreen\r\nimport com.ribani.app.screens.settings.SettingsScreen\r\nimport com.ribani.app.screens.settings.TwoFactorSettingsScreen\r\nimport com.ribani.app.sensors.FallAlertEvents\r\nimport kotlinx.coroutines.flow.first\r\nimport kotlinx.coroutines.launch\r\n\r\nconst val LOGIN_ROUTE = \"login?cuentaCreada={cuentaCreada}\"\r\nconst val REGISTER_ROUTE = \"register\"\r\n// Se llega tras un login que respondió twoFactorRequired (2FA activado)\r\nconst val TWO_FACTOR_LOGIN_ROUTE = \"login/twofactor/{challengeToken}\"\r\n\r\n@Composable\r\nfun AppNavigation(\r\n    startWithFallAlert: Boolean = false,\r\n    initialMedicationId: String? = null,\r\n    startWithInvitaciones: Boolean = false\r\n) {\r\n    val context = LocalContext.current\r\n    val navController = rememberNavController()\r\n    val scope = rememberCoroutineScope()\r\n    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route\r\n    val medicationUiState = MedicationRepository.uiState.collectAsState().value\r\n\r\n    // Verificación de sesión guardada antes de decidir la pantalla inicial\r\n    var sessionChecked by remember { mutableStateOf(false) }\r\n    var isLoggedIn by remember { mutableStateOf(false) }\r\n\r\n    LaunchedEffect(Unit) {\r\n        val sessionManager = SessionManager(context)\r\n        val hasLocalSession = sessionManager.isLoggedIn.first()\r\n\r\n        if (!hasLocalSession) {\r\n            sessionChecked = true\r\n            return@LaunchedEffect\r\n        }\r\n\r\n        // Hay sesión guardada: la validamos contra el servidor (GET /auth/me).\r\n        // Si el token fue revocado, el interceptor intenta refresh; si también falla,\r\n        // Invalid => vamos a login. Sin internet => Offline => entramos con sesión local.\r\n        scope.launch {\r\n            val validation = AuthRepository(sessionManager).getCurrentUser()\r\n            when (validation) {\r\n                is SessionValidation.Valid -> isLoggedIn = true\r\n                is SessionValidation.Invalid -> {\r\n                    sessionManager.clear()\r\n                    isLoggedIn = false\r\n                }\r\n                is SessionValidation.Offline -> isLoggedIn = true\r\n            }\r\n            sessionChecked = true\r\n        }\r\n    }\r\n\r\n    fun navigateToTab(route: String) {\r\n        navController.navigate(route) {\r\n            popUpTo(navController.graph.startDestinationId) {\r\n                saveState = true\r\n            }\r\n            launchSingleTop = true\r\n            restoreState = true\r\n        }\r\n    }\r\n\r\n    LaunchedEffect(initialMedicationId) {\r\n        if (!initialMedicationId.isNullOrBlank()) {\r\n            navController.navigate(\"medication/detail/$initialMedicationId\") {\r\n                launchSingleTop = true\r\n            }\r\n        }\r\n    }\r\n\r\n    // Medicamentos: carga datos reales del backend al abrir la pestañas\r\n    // (GET /tomas del dia + historial), como MedicaScreen de la web.\r\n    LaunchedEffect(isLoggedIn) {\r\n        if (isLoggedIn) {\r\n            MedicationRepository.initialize(context)\r\n        }\r\n    }\r\n\r\n    LaunchedEffect(navController) {\r\n        FallAlertEvents.events.collect {\r\n            navController.navigate(\"fall\") {\r\n                launchSingleTop = true\r\n            }\r\n        }\r\n    }\r\n\r\n    if (!sessionChecked) {\r\n        Box(\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .background(Color.White),\r\n            contentAlignment = Alignment.Center\r\n        ) {\r\n            CircularProgressIndicator(color = Color(0xFF006B3C))\r\n        }\r\n        return\r\n    }\r\n\r\n    val showBottomBar = currentRoute?.startsWith(\"login\") != true &&\r\n        currentRoute != REGISTER_ROUTE &&\r\n        currentRoute != \"fall\"\r\n\r\n    Scaffold(\r\n        containerColor = Color.White,\r\n        bottomBar = {\r\n            if (showBottomBar) {\r\n                BottomNavigationBar(\r\n                    currentRoute = currentRoute,\r\n                    onHomeClick = { navigateToTab(\"home\") },\r\n                    onMedicationClick = { navigateToTab(\"medication\") },\r\n                    onLocationClick = { navigateToTab(\"location\") },\r\n                    onContactsClick = { navigateToTab(\"contacts\") },\r\n                    onSettingsClick = { navigateToTab(\"settings\") }\r\n                )\r\n            }\r\n        }\r\n    ) { innerPadding ->\r\n        NavHost(\r\n            navController = navController,\r\n            startDestination = when {\r\n                startWithFallAlert -> \"fall\"\r\n                startWithInvitaciones && isLoggedIn -> \"invitaciones\"\r\n                isLoggedIn -> \"home\"\r\n                else -> LOGIN_ROUTE\r\n            },\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .background(Color.White)\r\n                .padding(innerPadding)\r\n        ) {\r\n            composable(\r\n                route = LOGIN_ROUTE,\r\n                arguments = listOf(\r\n                    navArgument(\"cuentaCreada\") {\r\n                        type = NavType.BoolType\r\n                        defaultValue = false\r\n                    }\r\n                )\r\n            ) { backStackEntry ->\r\n                val cuentaCreada = backStackEntry.arguments?.getBoolean(\"cuentaCreada\") ?: false\r\n                LoginScreen(\r\n                    cuentaCreada = cuentaCreada,\r\n                    onLoginSuccess = {\r\n                        navController.navigate(\"home\") {\r\n                            popUpTo(navController.graph.startDestinationId) {\r\n                                inclusive = true\r\n                            }\r\n                        }\r\n                    },\r\n                    onTwoFactorRequired = { challengeToken ->\r\n                        val encoded = android.net.Uri.encode(challengeToken)\r\n                        navController.navigate(\"login/twofactor/$encoded\") {\r\n                            launchSingleTop = true\r\n                        }\r\n                    },\r\n                    onNavigateToRegister = {\r\n                        navController.navigate(REGISTER_ROUTE) {\r\n                            launchSingleTop = true\r\n                        }\r\n                    }\r\n                )\r\n            }\r\n\r\n            composable(\r\n                route = TWO_FACTOR_LOGIN_ROUTE,\r\n                arguments = listOf(\r\n                    navArgument(\"challengeToken\") {\r\n                        type = NavType.StringType\r\n                    }\r\n                )\r\n            ) { backStackEntry ->\r\n                val challengeToken = backStackEntry.arguments?.getString(\"challengeToken\").orEmpty()\r\n                TwoFactorLoginScreen(\r\n                    challengeToken = challengeToken,\r\n                    onLoginSuccess = {\r\n                        navController.navigate(\"home\") {\r\n                            popUpTo(navController.graph.startDestinationId) {\r\n                                inclusive = true\r\n                            }\r\n                        }\r\n                    },\r\n                    onBack = { navController.popBackStack() }\r\n                )\r\n            }\r\n\r\n            composable(route = REGISTER_ROUTE) {\r\n                RegisterScreen(\r\n                    onRegisterSuccess = {\r\n                        navController.navigate(\"login?cuentaCreada=true\") {\r\n                            popUpTo(navController.graph.startDestinationId) {\r\n                                inclusive = true\r\n                            }\r\n                        }\r\n                    },\r\n                    onBack = { navController.popBackStack() }\r\n                )\r\n            }\r\n\r\n            composable(\"home\") {\r\n                HomeScreen(\r\n                    onSosClick = {\r\n                        navController.navigate(\"fall\") {\r\n                            launchSingleTop = true\r\n                        }\r\n                    },\r\n                    isMonitoring = true\r\n                )\r\n            }\r\n\r\n            composable(\"medication\") {\r\n                MedicationScreen(\r\n                    uiState = medicationUiState,\r\n                    onOpenDetail = { medicationId -> navController.navigate(\"medication/detail/$medicationId\") },\r\n                    onOpenHistory = { navController.navigate(\"medication/history\") },\r\n                    onTaken = { occurrenceId ->\r\n                        MedicationRepository.markTaken(context, occurrenceId)\r\n                    },\r\n                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },\r\n                    onOmit = { occurrenceId ->\r\n                        MedicationRepository.markOmitted(context, occurrenceId)\r\n                    },\r\n                    onRefrescar = {\r\n                        scope.launch { MedicationRepository.refrescar(context) }\r\n                    }\r\n                )\r\n            }\r\n\r\n            composable(\"medication/detail/{medicationId}\") { backStackEntry ->\r\n                val medicationId = backStackEntry.arguments?.getString(\"medicationId\").orEmpty()\r\n                MedicationDetailScreen(\r\n                    medicationId = medicationId,\r\n                    uiState = medicationUiState,\r\n                    onBack = { navController.popBackStack() },\r\n                    onOpenHistory = { navController.navigate(\"medication/history\") },\r\n                    onTaken = { occurrenceId ->\r\n                        MedicationRepository.markTaken(context, occurrenceId)\r\n                    },\r\n                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },\r\n                    onOmit = { occurrenceId ->\r\n                        MedicationRepository.markOmitted(context, occurrenceId)\r\n                    }\r\n                )\r\n            }\r\n\r\n            composable(\"medication/history\") {\r\n                MedicationHistoryScreen(\r\n                    uiState = medicationUiState,\r\n                    onBack = { navController.popBackStack() }\r\n                )\r\n            }\r\n\r\n            composable(\"location\") {\r\n                LocationScreen()\r\n            }\r\n\r\n            composable(\"contacts\") {\r\n                ContactsScreen()\r\n            }\r\n\r\n            composable(\"settings\") {\r\n                SettingsScreen(\r\n                    onLogout = {\r\n                        scope.launch {\r\n                            AuthRepository(SessionManager(context)).logout()\r\n                            navController.navigate(\"login\") {\r\n                                popUpTo(navController.graph.startDestinationId) {\r\n                                    inclusive = true\r\n                                }\r\n                            }\r\n                        }\r\n                    },\r\n                    onOpenTwoFactor = {\r\n                        navController.navigate(\"settings/twofactor\") {\r\n                            launchSingleTop = true\r\n                        }\r\n                    }\r\n                )\r\n            }\r\n\r\n            composable(\"settings/twofactor\") {\r\n                TwoFactorSettingsScreen(\r\n                    onBack = { navController.popBackStack() }\r\n                )\r\n            }\r\n\r\n            composable(\"invitaciones\") {\r\n                InvitacionesScreen(\r\n                    onBack = { navController.popBackStack() }\r\n                )\r\n            }\r\n\r\n            composable(\"fall\") {\r\n                FallAlertScreen(\r\n                    onOkay = {\r\n                        navController.popBackStack()\r\n                    },\r\n                    onNeedHelp = {\r\n                        // La alerta CAIDA ya quedó abierta desde la detección;\r\n                        // el SOS directo se envía desde FallAlertActivity.\r\n                        // Pendiente: enviar SOS también en la navegación interna.\r\n                        navController.popBackStack()\r\n                    },\r\n                    onTiempoAgotado = {\r\n                        navController.popBackStack()\r\n                    }\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/navigation/AppNavigation.kt b/app/src/main/java/com/ribani/app/navigation/AppNavigation.kt
+--- a/app/src/main/java/com/ribani/app/navigation/AppNavigation.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/navigation/AppNavigation.kt	(date 1792305980274)
+@@ -29,6 +29,8 @@
+ import com.ribani.app.data.local.SessionManager
+ import com.ribani.app.data.repository.AuthRepository
+ import com.ribani.app.data.repository.MedicationRepository
++import com.ribani.app.data.repository.UbicacionesRepository
++import com.ribani.app.screens.fall.AlertaAccionScreen
+ import com.ribani.app.data.repository.SessionValidation
+ import com.ribani.app.screens.auth.LoginScreen
+ import com.ribani.app.screens.auth.TwoFactorLoginScreen
+@@ -44,6 +46,9 @@
+ import com.ribani.app.screens.settings.SettingsScreen
+ import com.ribani.app.screens.settings.TwoFactorSettingsScreen
+ import com.ribani.app.sensors.FallAlertEvents
++import com.ribani.app.sensors.RibaniMonitoringService
++import android.content.Intent
++import androidx.core.content.ContextCompat
+ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.launch
+ 
+@@ -63,6 +68,7 @@
+     val scope = rememberCoroutineScope()
+     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+     val medicationUiState = MedicationRepository.uiState.collectAsState().value
++    val monitoreando by RibaniMonitoringService.monitoring.collectAsState()
+ 
+     // Verificación de sesión guardada antes de decidir la pantalla inicial
+     var sessionChecked by remember { mutableStateOf(false) }
+@@ -104,8 +110,8 @@
+         }
+     }
+ 
+-    LaunchedEffect(initialMedicationId) {
+-        if (!initialMedicationId.isNullOrBlank()) {
++    LaunchedEffect(initialMedicationId, sessionChecked, isLoggedIn) {
++        if (sessionChecked && isLoggedIn && !initialMedicationId.isNullOrBlank()) {
+             navController.navigate("medication/detail/$initialMedicationId") {
+                 launchSingleTop = true
+             }
+@@ -117,10 +123,12 @@
+     LaunchedEffect(isLoggedIn) {
+         if (isLoggedIn) {
+             MedicationRepository.initialize(context)
++            ContextCompat.startForegroundService(context, Intent(context, RibaniMonitoringService::class.java))
+         }
+     }
+ 
+-    LaunchedEffect(navController) {
++    LaunchedEffect(navController, sessionChecked, isLoggedIn) {
++        if (!sessionChecked || !isLoggedIn) return@LaunchedEffect
+         FallAlertEvents.events.collect {
+             navController.navigate("fall") {
+                 launchSingleTop = true
+@@ -128,6 +136,18 @@
+         }
+     }
+ 
++    LaunchedEffect(sessionChecked) {
++        if (!sessionChecked) return@LaunchedEffect
++        SessionManager(context).isLoggedIn.collect { existe ->
++            if (!existe && isLoggedIn) {
++                isLoggedIn = false
++                MedicationRepository.limpiar(context)
++                context.stopService(Intent(context, RibaniMonitoringService::class.java))
++                navController.navigate("login") { popUpTo(navController.graph.id) { inclusive = true } }
++            }
++        }
++    }
++
+     if (!sessionChecked) {
+         Box(
+             modifier = Modifier
+@@ -143,6 +163,7 @@
+     val showBottomBar = currentRoute?.startsWith("login") != true &&
+         currentRoute != REGISTER_ROUTE &&
+         currentRoute != "fall"
++        && currentRoute != "sos"
+ 
+     Scaffold(
+         containerColor = Color.White,
+@@ -185,6 +206,7 @@
+                 LoginScreen(
+                     cuentaCreada = cuentaCreada,
+                     onLoginSuccess = {
++                        isLoggedIn = true
+                         navController.navigate("home") {
+                             popUpTo(navController.graph.startDestinationId) {
+                                 inclusive = true
+@@ -217,6 +239,7 @@
+                 TwoFactorLoginScreen(
+                     challengeToken = challengeToken,
+                     onLoginSuccess = {
++                        isLoggedIn = true
+                         navController.navigate("home") {
+                             popUpTo(navController.graph.startDestinationId) {
+                                 inclusive = true
+@@ -243,11 +266,11 @@
+             composable("home") {
+                 HomeScreen(
+                     onSosClick = {
+-                        navController.navigate("fall") {
++                        navController.navigate("sos") {
+                             launchSingleTop = true
+                         }
+                     },
+-                    isMonitoring = true
++                    isMonitoring = monitoreando
+                 )
+             }
+ 
+@@ -259,7 +282,7 @@
+                     onTaken = { occurrenceId ->
+                         MedicationRepository.markTaken(context, occurrenceId)
+                     },
+-                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },
++                    onPostpone = { occurrenceId -> MedicationRepository.postpone(context, occurrenceId) },
+                     onOmit = { occurrenceId ->
+                         MedicationRepository.markOmitted(context, occurrenceId)
+                     },
+@@ -279,7 +302,7 @@
+                     onTaken = { occurrenceId ->
+                         MedicationRepository.markTaken(context, occurrenceId)
+                     },
+-                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },
++                    onPostpone = { occurrenceId -> MedicationRepository.postpone(context, occurrenceId) },
+                     onOmit = { occurrenceId ->
+                         MedicationRepository.markOmitted(context, occurrenceId)
+                     }
+@@ -306,6 +329,10 @@
+                     onLogout = {
+                         scope.launch {
+                             AuthRepository(SessionManager(context)).logout()
++                            isLoggedIn = false
++                            MedicationRepository.limpiar(context)
++                            context.stopService(Intent(context, RibaniMonitoringService::class.java))
++                            UbicacionesRepository.destructor()
+                             navController.navigate("login") {
+                                 popUpTo(navController.graph.startDestinationId) {
+                                     inclusive = true
+@@ -317,7 +344,8 @@
+                         navController.navigate("settings/twofactor") {
+                             launchSingleTop = true
+                         }
+-                    }
++                    },
++                    onOpenInvitaciones = { navController.navigate("invitaciones") }
+                 )
+             }
+ 
+@@ -334,20 +362,10 @@
+             }
+ 
+             composable("fall") {
+-                FallAlertScreen(
+-                    onOkay = {
+-                        navController.popBackStack()
+-                    },
+-                    onNeedHelp = {
+-                        // La alerta CAIDA ya quedó abierta desde la detección;
+-                        // el SOS directo se envía desde FallAlertActivity.
+-                        // Pendiente: enviar SOS también en la navegación interna.
+-                        navController.popBackStack()
+-                    },
+-                    onTiempoAgotado = {
+-                        navController.popBackStack()
+-                    }
+-                )
++                AlertaAccionScreen(esCaida = true, onCerrar = { navController.popBackStack() })
++            }
++            composable("sos") {
++                AlertaAccionScreen(esCaida = false, onCerrar = { navController.popBackStack() })
+             }
+         }
+     }
+Index: app/src/main/java/com/ribani/app/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app\r\n\r\nimport android.app.AlarmManager\r\nimport android.os.Bundle\r\nimport android.content.Intent\r\nimport android.os.Build\r\nimport android.content.pm.PackageManager\r\nimport android.Manifest\r\nimport androidx.core.content.ContextCompat\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\nimport com.ribani.app.data.remote.ApiClient\r\nimport com.ribani.app.navigation.AppNavigation\r\nimport com.ribani.app.data.repository.MedicationRepository\r\nimport com.ribani.app.notifications.MedicationNotificationContract\r\nimport com.ribani.app.sensors.RibaniMonitoringService\r\nimport com.ribani.app.ui.theme.RIBANITheme\r\n\r\nclass MainActivity : ComponentActivity() {\r\n    private var startWithFallAlert = false\r\n    private var initialMedicationId: String? = null\r\n    private var startWithInvitaciones = false\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        resolveLaunchIntent(intent, savedInstanceState)\r\n        ApiClient.init(applicationContext)\r\n        MedicationRepository.initialize(applicationContext)\r\n        startMonitoringService()\r\n\r\n        setContent {\r\n            RIBANITheme {\r\n                AppNavigation(\r\n                    startWithFallAlert = startWithFallAlert,\r\n                    initialMedicationId = initialMedicationId,\r\n                    startWithInvitaciones = startWithInvitaciones\r\n                )\r\n            }\r\n        }\r\n    }\r\n\r\n    override fun onNewIntent(intent: Intent) {\r\n        super.onNewIntent(intent)\r\n        setIntent(intent)\r\n        if (intent.action == ACTION_SHOW_FALL_ALERT ||\r\n            intent.action == MedicationNotificationContract.ACTION_OPEN_MEDICATION ||\r\n            intent.action == Intent.ACTION_VIEW\r\n        ) {\r\n            resolveLaunchIntent(intent, null)\r\n            recreate()\r\n        }\r\n    }\r\n\r\n    private fun resolveLaunchIntent(intent: Intent?, savedInstanceState: Bundle?) {\r\n        startWithFallAlert = intent?.action == ACTION_SHOW_FALL_ALERT ||\r\n            savedInstanceState?.getBoolean(EXTRA_SHOW_FALL_ALERT, false) == true\r\n        initialMedicationId = if (intent?.action == MedicationNotificationContract.ACTION_OPEN_MEDICATION) {\r\n            intent.getStringExtra(MedicationNotificationContract.EXTRA_MEDICATION_ID)\r\n        } else {\r\n            null\r\n        }\r\n        startWithInvitaciones =\r\n            savedInstanceState?.getBoolean(EXTRA_SHOW_INVITACIONES, false) == true ||\r\n            (intent?.action == Intent.ACTION_VIEW &&\r\n                intent.data?.host == HOST_INVITACIONES)\r\n    }\r\n\r\n    private fun startMonitoringService() {\r\n        val serviceIntent = Intent(this, RibaniMonitoringService::class.java)\r\n        ContextCompat.startForegroundService(this, serviceIntent)\r\n        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&\r\n            ContextCompat.checkSelfPermission(\r\n                this,\r\n                Manifest.permission.POST_NOTIFICATIONS\r\n            ) != PackageManager.PERMISSION_GRANTED\r\n        ) {\r\n            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 200)\r\n        }\r\n\r\n        pedirPermisoAlarmasExactas()\r\n    }\r\n\r\n    /**\r\n     * Android 12+ (crítico en 14+): sin SCHEDULE_EXACT_ALARM concedida,\r\n     * setAlarmClock lanza SecurityException y las alarmas de medicamento\r\n     * no llegan. Envía al usuario al diálogo del sistema para\r\n     * \"Permitir alarmas y recordatorios\". Es una única concesión\r\n     * persistente en Settings, no un requestPermissions.\r\n     */\r\n    private fun pedirPermisoAlarmasExactas() {\r\n        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return\r\n\r\n        val alarmManager = getSystemService(AlarmManager::class.java) ?: return\r\n        if (!alarmManager.canScheduleExactAlarms()) {\r\n            try {\r\n                startActivity(\r\n                    Intent(\r\n                        android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,\r\n                        android.net.Uri.parse(\"package:$packageName\")\r\n                    )\r\n                )\r\n            } catch (e: Exception) {\r\n                // Algunos OEMs no resuelven el intent; el fallback\r\n                // setWindow del scheduler cubre alarma no exacta.\r\n            }\r\n        }\r\n    }\r\n\r\n    companion object {\r\n        const val ACTION_SHOW_FALL_ALERT = \"com.ribani.app.SHOW_FALL_ALERT\"\r\n        private const val EXTRA_SHOW_FALL_ALERT = \"show_fall_alert\"\r\n        private const val EXTRA_SHOW_INVITACIONES = \"show_invitaciones\"\r\n        const val HOST_INVITACIONES = \"invitaciones\"\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/MainActivity.kt b/app/src/main/java/com/ribani/app/MainActivity.kt
+--- a/app/src/main/java/com/ribani/app/MainActivity.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/MainActivity.kt	(date 1792314904164)
+@@ -9,6 +9,14 @@
+ import androidx.core.content.ContextCompat
+ import androidx.activity.ComponentActivity
+ import androidx.activity.compose.setContent
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.material3.Button
++import androidx.compose.material3.OutlinedButton
++import androidx.compose.material3.Text
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.unit.dp
+ import com.ribani.app.data.remote.ApiClient
+ import com.ribani.app.navigation.AppNavigation
+ import com.ribani.app.data.repository.MedicationRepository
+@@ -20,11 +28,71 @@
+     private var startWithFallAlert = false
+     private var initialMedicationId: String? = null
+     private var startWithInvitaciones = false
++    private var aplicacionIniciada = false
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+         resolveLaunchIntent(intent, savedInstanceState)
+         ApiClient.init(applicationContext)
++
++        if (requierePermisoRedLocal()) {
++            mostrarAccesoRedLocal()
++            solicitarPermisoRedLocal()
++        } else iniciarAplicacion()
++    }
++
++    override fun onResume() {
++        super.onResume()
++        // También continúa cuando el usuario concede acceso desde Ajustes.
++        if (!requierePermisoRedLocal()) iniciarAplicacion()
++    }
++
++    private fun requierePermisoRedLocal(): Boolean =
++        Build.VERSION.SDK_INT >= 37 && ContextCompat.checkSelfPermission(
++            this, Manifest.permission.ACCESS_LOCAL_NETWORK
++        ) != PackageManager.PERMISSION_GRANTED
++
++    private fun solicitarPermisoRedLocal() {
++        if (Build.VERSION.SDK_INT >= 37) {
++            requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), CODIGO_RED_LOCAL)
++        }
++    }
++
++    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
++        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
++        if (requestCode == CODIGO_RED_LOCAL && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
++            iniciarAplicacion()
++        }
++    }
++
++    private fun mostrarAccesoRedLocal() {
++        setContent {
++            RIBANITheme {
++                Column(Modifier.fillMaxSize().safeDrawingPadding()
++                    .verticalScroll(rememberScrollState()).padding(24.dp),
++                    verticalArrangement = Arrangement.Center) {
++                    Text("Conectar con tu servidor")
++                    Spacer(Modifier.height(16.dp))
++                    Text("RIBANI necesita acceso a la red local para conectarse a tu servidor en esta red Wi-Fi.")
++                    Spacer(Modifier.height(24.dp))
++                    Button(onClick = { solicitarPermisoRedLocal() },
++                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
++                        Text("Permitir red local")
++                    }
++                    OutlinedButton(onClick = {
++                        startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
++                            android.net.Uri.parse("package:$packageName")))
++                    }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
++                        Text("Abrir ajustes")
++                    }
++                }
++            }
++        }
++    }
++
++    private fun iniciarAplicacion() {
++        if (aplicacionIniciada || requierePermisoRedLocal()) return
++        aplicacionIniciada = true
+         MedicationRepository.initialize(applicationContext)
+         startMonitoringService()
+ 
+@@ -107,9 +175,10 @@
+     }
+ 
+     companion object {
++        private const val CODIGO_RED_LOCAL = 201
+         const val ACTION_SHOW_FALL_ALERT = "com.ribani.app.SHOW_FALL_ALERT"
+         private const val EXTRA_SHOW_FALL_ALERT = "show_fall_alert"
+         private const val EXTRA_SHOW_INVITACIONES = "show_invitaciones"
+         const val HOST_INVITACIONES = "invitaciones"
+     }
+-}
+\ No newline at end of file
++}
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <uses-permission android:name=\"android.permission.INTERNET\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />\r\n    <uses-permission\r\n        android:name=\"android.permission.FOREGROUND_SERVICE\"\r\n        tools:ignore=\"ForegroundServicePermission\" />\r\n    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\r\n    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />\r\n    <uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />\r\n    <uses-permission android:name=\"android.permission.SCHEDULE_EXACT_ALARM\" />\r\n    <uses-permission\r\n        android:name=\"android.permission.USE_FULL_SCREEN_INTENT\"\r\n        tools:ignore=\"UseFullScreenIntent\" />\r\n    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:usesCleartextTraffic=\"true\"\r\n        android:theme=\"@style/Theme.RIBANI\" >\r\n        <meta-data\r\n            android:name=\"com.google.android.geo.API_KEY\"\r\n            android:value=\"@string/google_maps_key\" />\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"true\"\r\n            android:theme=\"@style/Theme.RIBANI\"\r\n            android:windowSoftInputMode=\"adjustResize\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n            <!-- Deep link ribani://invitaciones (correo de invitación) -->\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.VIEW\" />\r\n                <category android:name=\"android.intent.category.DEFAULT\" />\r\n                <category android:name=\"android.intent.category.BROWSABLE\" />\r\n\r\n                <data android:scheme=\"ribani\" android:host=\"invitaciones\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity\r\n            android:name=\".FallAlertActivity\"\r\n            android:excludeFromRecents=\"true\"\r\n            android:exported=\"false\"\r\n            android:launchMode=\"singleTask\"\r\n            android:theme=\"@style/Theme.RIBANI\" />\r\n        <activity\r\n            android:name=\".MedicationAlarmActivity\"\r\n            android:excludeFromRecents=\"true\"\r\n            android:exported=\"false\"\r\n            android:launchMode=\"singleTask\"\r\n            android:showWhenLocked=\"true\"\r\n            android:turnScreenOn=\"true\"\r\n            android:theme=\"@style/Theme.RIBANI\" />\r\n        <service\r\n            android:name=\".sensors.RibaniMonitoringService\"\r\n            android:enabled=\"true\"\r\n            android:exported=\"false\"\r\n            android:foregroundServiceType=\"specialUse\" >\r\n            <property\r\n                android:name=\"android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE\"\r\n                android:value=\"fall detection sensor monitoring\" />\r\n        </service>\r\n        <receiver\r\n            android:name=\".notifications.MedicationAlarmReceiver\"\r\n            android:exported=\"false\" />\r\n        <receiver\r\n            android:name=\".notifications.MedicationActionReceiver\"\r\n            android:exported=\"false\" />\r\n        <receiver\r\n            android:name=\".notifications.MedicationBootReceiver\"\r\n            android:exported=\"true\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.BOOT_COMPLETED\" />\r\n                <action android:name=\"android.intent.action.LOCKED_BOOT_COMPLETED\" />\r\n            </intent-filter>\r\n        </receiver>\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/AndroidManifest.xml	(date 1792314749976)
+@@ -3,6 +3,7 @@
+     xmlns:tools="http://schemas.android.com/tools">
+ 
+     <uses-permission android:name="android.permission.INTERNET" />
++    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+     <uses-permission
+         android:name="android.permission.FOREGROUND_SERVICE"
+@@ -89,4 +90,4 @@
+         </receiver>
+     </application>
+ 
+-</manifest>
+\ No newline at end of file
++</manifest>
+Index: app/src/main/java/com/ribani/app/data/repository/MedicationRepository.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.data.repository\r\n\r\nimport android.content.Context\r\nimport com.ribani.app.data.local.SessionManager\r\nimport com.ribani.app.data.remote.ApiClient\r\nimport com.ribani.app.data.remote.ActualizarTomaRequest\r\nimport com.ribani.app.data.remote.MedicamentoResponse\r\nimport com.ribani.app.data.remote.TomaResponse\r\nimport com.ribani.app.notifications.MedicationAlarmScheduler\r\nimport java.time.Instant\r\nimport java.time.LocalDate\r\nimport java.time.ZoneId\r\nimport java.time.ZonedDateTime\r\nimport java.time.format.DateTimeFormatter\r\nimport kotlinx.coroutines.CoroutineScope\r\nimport kotlinx.coroutines.Dispatchers\r\nimport kotlinx.coroutines.SupervisorJob\r\nimport kotlinx.coroutines.flow.MutableStateFlow\r\nimport kotlinx.coroutines.flow.StateFlow\r\nimport kotlinx.coroutines.flow.asStateFlow\r\nimport kotlinx.coroutines.flow.first\r\nimport kotlinx.coroutines.launch\r\n\r\nenum class MedicationStatus {\r\n    PENDING, TAKEN, POSTPONED, OMITTED\r\n}\r\n\r\ndata class MedicationOccurrence(\r\n    val id: String,\r\n    val medicationId: String,\r\n    val name: String,\r\n    val dosage: String,\r\n    val time: String,\r\n    val status: MedicationStatus = MedicationStatus.PENDING,\r\n    /** programada_para original (ISO 8601) para programar alarmas exactas. */\r\n    val programadaIso: String? = null,\r\n    /** Instrucciones del medicamento (del catálogo GET /medicamentos). */\r\n    val instrucciones: String? = null,\r\n)\r\n\r\ndata class Medication(\r\n    val id: String,\r\n    val name: String,\r\n    val dosage: String,\r\n    val schedule: String,\r\n    val instructions: String = \"\",\r\n    val isTaken: Boolean = false\r\n)\r\n\r\ndata class MedicationUiState(\r\n    val pendingMedications: List<MedicationOccurrence> = emptyList(),\r\n    val medications: List<Medication> = emptyList(),\r\n    val history: List<MedicationOccurrence> = emptyList(),\r\n    /** true cuando los datos vienen del backend (no de los demo). */\r\n    val cargado: Boolean = false,\r\n    /** true mientras corre un refresco iniciado por pull-to-refresh. */\r\n    val refrescando: Boolean = false,\r\n    /** Mensaje de estado para la UI (offline/demo). */\r\n    val mensajeEstado: String? = null\r\n)\r\n\r\n/**\r\n * Repositorio de medicamentos alimentado por el backend (GET /tomas y\r\n * PATCH /tomas/{id}), a la par del panel web:\r\n *\r\n * - \"Pendientes de hoy\": tomas PENDIENTE programadas para hoy.\r\n * - \"Historial\": últimas tomas TOMADA/OMITIDA (para TOMADA se muestra\r\n *   la hora real tomada_en si existe).\r\n * - \"Mis medicamentos\": derivado de las tomas (el alta/edición de\r\n *   medicamentos la hace el familiar desde su panel web).\r\n * - Sin sesión o sin conexión: se conservan los datos demo como\r\n *   fallback de UI; las acciones no pegan al backend sin sesión.\r\n */\r\nobject MedicationRepository {\r\n\r\n    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)\r\n    private val formatoHora = DateTimeFormatter.ofPattern(\"hh:mm a\")\r\n    private val formatoDiaHora = DateTimeFormatter.ofPattern(\"'Ayer', hh:mm a'.'\")\r\n\r\n    /** Datos demo de respaldo (offline/sin sesión) para no dejar vacío. */\r\n    private val demoState = MedicationUiState(\r\n        pendingMedications = listOf(\r\n            MedicationOccurrence(\"occ_demo_1\", \"med_demo_1\", \"Paracetamol\", \"500 mg\", \"08:00 AM\"),\r\n            MedicationOccurrence(\"occ_demo_2\", \"med_demo_2\", \"Enalapril\", \"10 mg\", \"02:00 PM\")\r\n        ),\r\n        medications = listOf(\r\n            Medication(\"med_demo_1\", \"Paracetamol\", \"500 mg\", \"Cada 8 horas\", \"Tomar con abundante agua\"),\r\n            Medication(\"med_demo_2\", \"Enalapril\", \"10 mg\", \"Cada 12 horas\", \"Tomar después de las comidas\")\r\n        ),\r\n        history = emptyList(),\r\n        cargado = false,\r\n        mensajeEstado = \"Sin conexión con el servidor: datos de demostración.\"\r\n    )\r\n\r\n    private val _uiState = MutableStateFlow(demoState)\r\n    val uiState: StateFlow<MedicationUiState> = _uiState.asStateFlow()\r\n\r\n    fun initialize(context: Context) {\r\n        scope.launch {\r\n            val manager = SessionManager(context)\r\n\r\n            if (!manager.isLoggedIn.first()) {\r\n                _uiState.value = demoState\r\n                return@launch\r\n            }\r\n\r\n            refrescar(context)\r\n        }\r\n    }\r\n\r\n    /** Recarga del backend: pendientes de hoy + historial reciente. */\r\n    suspend fun refrescar(context: Context) {\r\n        val manager = SessionManager(context)\r\n\r\n        if (!manager.isLoggedIn.first()) {\r\n            _uiState.value = demoState\r\n            return\r\n        }\r\n\r\n        // Pull-to-refresh: indicador visible durante la recarga.\r\n        _uiState.value = _uiState.value.copy(refrescando = true)\r\n\r\n        try {\r\n            val zona = ZoneId.systemDefault()\r\n            val hoy = LocalDate.now(zona)\r\n            val desde = hoy.atStartOfDay(zona).toInstant().toString()\r\n            val hasta = hoy.plusDays(1).atStartOfDay(zona).toInstant().toString()\r\n            // Hasta 7 días de historial recargas de historial.\r\n            val desdeHistorial = hoy.minusDays(7)\r\n                .atStartOfDay(zona).toInstant().toString()\r\n\r\n            // Paralelo: catálogo real de medicamentos + tomas.\r\n            // GET /tomas no trae el nombre del medicamento (solo su id);\r\n            // el catálogo se cruza aquí para mostrar el nombre real en\r\n            // pendientes, alarma e historial.\r\n            val catalogo = ApiClient.medicamentosService.listarMedicamentos(\r\n                soloActivos = \"false\",\r\n            )\r\n            // id → medicamento, para cruzar el nombre real en cada toma\r\n            // (incluye inactivos: el historial debe mostrar el nombre\r\n            // aunque el medicamento ya esté eliminado).\r\n            val nombrePorId: Map<String, MedicamentoResponse> =\r\n                catalogo.associateBy { it.id }\r\n\r\n            val tomasPendientes = ApiClient.medicamentosService.listarTomas(\r\n                estado = \"PENDIENTE\",\r\n                desde = desde,\r\n                hasta = hasta,\r\n            )\r\n            val tomasRegistradas = ApiClient.medicamentosService.listarTomas(\r\n                estado = \"TOMADA\",\r\n                desde = desdeHistorial,\r\n                hasta = hasta,\r\n            )\r\n            val tomasOmitidas = ApiClient.medicamentosService.listarTomas(\r\n                estado = \"OMITIDA\",\r\n                desde = desdeHistorial,\r\n                hasta = hasta,\r\n            )\r\n\r\n            val pendientesUI = tomasPendientes.map { it.aOcurrencia(nombrePorId) }\r\n\r\n            // Tarjetas \"Mis medicamentos\" desde el catálogo real del\r\n            // backend; los horarios mostrados se derivan de las tomas\r\n            // vistas. Se excluyen inactivos (p. ej. medicamentos\r\n            // eliminados): no deben aparecer como tarjetas actuales.\r\n            // Se ordenan por nombre para lectura estable.\r\n            val catalogoUI = catalogo\r\n                .asSequence()\r\n                .filter { it.activo }\r\n                .map { medicamento ->\r\n                    val tomasDelMedicamento =\r\n                        (tomasPendientes + tomasRegistradas + tomasOmitidas)\r\n                            .filter { it.medicamento_id == medicamento.id }\r\n                    val horarioTexto = tomasDelMedicamento\r\n                        .map { it.programadaParaLocal().format(formatoHora) }\r\n                        .distinct()\r\n                        .take(4)\r\n                        .joinToString(\" · \")\r\n                    Medication(\r\n                        id = medicamento.id,\r\n                        name = medicamento.nombre,\r\n                        dosage = \"${medicamento.dosis} ${medicamento.unidad_dosis}\",\r\n                        schedule = horarioTexto.ifEmpty { \"Según lo programado\" },\r\n                        instructions = medicamento.instrucciones ?: \"\",\r\n                    )\r\n                }\r\n                .sortedBy { it.name.lowercase() }\r\n                .toList()\r\n\r\n            val historialUI = (tomasRegistradas + tomasOmitidas)\r\n                .sortedByDescending { it.programada_para }\r\n                .map { it.aOcurrenciaHistorial(nombrePorId) }\r\n\r\n            _uiState.value = MedicationUiState(\r\n                pendingMedications = pendientesUI,\r\n                medications = catalogoUI,\r\n                history = historialUI,\r\n                cargado = true,\r\n                refrescando = false,\r\n                mensajeEstado = null\r\n            )\r\n\r\n            // Con el estado fresco del backend, reprograma las alarmas de\r\n            // las tomas pendientes de hoy ( MedicationAlarmScheduler).\r\n            MedicationAlarmScheduler.programarPendientes(context)\r\n        } catch (e: Exception) {\r\n            // Sin red/401/etc.: conservar lo que haya (o demo) y avisar.\r\n            _uiState.value =\r\n                (_uiState.value.takeIf { it.cargado } ?: demoState)\r\n                    .copy(\r\n                        refrescando = false,\r\n                        mensajeEstado = \"No se pudo actualizar: ${e.message ?: \"sin conexión\"}\"\r\n                    )\r\n        }\r\n    }\r\n\r\n    /** PATCH /tomas/{id} con estado TOMADA (ventana del horario la valida el server). */\r\n    fun markTaken(context: Context, occurrenceId: String) {\r\n        actualizar(context, occurrenceId, ActualizarTomaRequest(estado = \"TOMADA\"))\r\n    }\r\n\r\n    /** PATCH /tomas/{id} con estado OMITIDA (sin ventana, como en la web). */\r\n    fun markOmitted(context: Context, occurrenceId: String) {\r\n        actualizar(context, occurrenceId, ActualizarTomaRequest(estado = \"OMITIDA\"))\r\n    }\r\n\r\n    /**\r\n     * Posponer: el backend no define estado POSTPONED (solo TOMADA/OMITIDA),\r\n     * igual que en la web la opción disponible es mover la toma.\r\n     * Aquí se queda local (badge) sin tocar el backend; persistencia real\r\n     * de \"posponer\" requeriría endpoint (Pendiente en servidor).\r\n     */\r\n    fun postpone(occurrenceId: String) {\r\n        val current = _uiState.value\r\n        _uiState.value = current.copy(\r\n            pendingMedications = current.pendingMedications.map {\r\n                if (it.id == occurrenceId) {\r\n                    it.copy(status = MedicationStatus.POSTPONED)\r\n                } else {\r\n                    it\r\n                }\r\n            }\r\n        )\r\n    }\r\n\r\n    private fun actualizar(\r\n        context: Context,\r\n        occurrenceId: String,\r\n        cambio: ActualizarTomaRequest,\r\n    ) {\r\n        // Solo si la lista es del backend (id UUID real, no demo).\r\n        if (!_uiState.value.cargado) return\r\n\r\n        scope.launch {\r\n            try {\r\n                ApiClient.medicamentosService.actualizarToma(occurrenceId, cambio)\r\n                // Re-sincroniza con el backend (estado en server es la verdad).\r\n                refrescar(context)\r\n            } catch (e: Exception) {\r\n                _uiState.value = _uiState.value.copy(\r\n                    mensajeEstado = \"No se pudo registrar la toma: ${e.message ?: \"intenta de nuevo\"}\"\r\n                )\r\n            }\r\n        }\r\n    }\r\n\r\n    // ----- Ajustes de shape -----\r\n\r\n    private fun TomaResponse.programadaParaLocal(): ZonedDateTime =\r\n        Instant.parse(programada_para).atZone(ZoneId.systemDefault())\r\n\r\n    private fun TomaResponse.aOcurrencia(\r\n        nombrePorId: Map<String, MedicamentoResponse>,\r\n    ): MedicationOccurrence {\r\n        val medicamento = nombrePorId[medicamento_id]\r\n        return MedicationOccurrence(\r\n            id = id,\r\n            medicationId = medicamento_id,\r\n            name = medicamento?.nombre\r\n                ?: nota\r\n                ?: \"Medicamento\",\r\n            dosage = medicamento?.let { \"${it.dosis} ${it.unidad_dosis}\" }\r\n                ?: dosageDe(this),\r\n            time = programadaParaLocal().format(formatoHora),\r\n            status = MedicationStatus.PENDING,\r\n            programadaIso = programada_para,\r\n            instrucciones = medicamento?.instrucciones,\r\n        )\r\n    }\r\n\r\n    private fun TomaResponse.aOcurrenciaHistorial(\r\n        nombrePorId: Map<String, MedicamentoResponse>,\r\n    ): MedicationOccurrence {\r\n        val estadoUI = if (estado == \"TOMADA\") {\r\n            MedicationStatus.TAKEN\r\n        } else if (estado == \"OMITIDA\") {\r\n            MedicationStatus.OMITTED\r\n        } else {\r\n            MedicationStatus.PENDING\r\n        }\r\n\r\n        // En TOMADA se prefiere la hora real de la toma si existe.\r\n        val momento = if (estado == \"TOMADA\" && tomada_en != null) {\r\n            Instant.parse(tomada_en).atZone(ZoneId.systemDefault())\r\n        } else {\r\n            programadaParaLocal()\r\n        }\r\n\r\n        val medicamento = nombrePorId[medicamento_id]\r\n\r\n        return MedicationOccurrence(\r\n            id = id,\r\n            medicationId = medicamento_id,\r\n            name = medicamento?.nombre\r\n                ?: nota\r\n                ?: \"Medicamento\",\r\n            dosage = medicamento?.let { \"${it.dosis} ${it.unidad_dosis}\" }\r\n                ?: dosageDe(this),\r\n            time = momento.format(formatoDiaHora),\r\n            status = estadoUI,\r\n            instrucciones = medicamento?.instrucciones,\r\n        )\r\n    }\r\n\r\n    /** Fallback si el catálogo no trae al medicamento de la toma. */\r\n    private fun dosageDe(toma: TomaResponse): String =\r\n        toma.dosis_tomada?.let { dosis ->\r\n            \"${dosis.toString().trimEnd('0', '.')} mg\"\r\n        } ?: \"Dosis según indicación\"\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/data/repository/MedicationRepository.kt b/app/src/main/java/com/ribani/app/data/repository/MedicationRepository.kt
+--- a/app/src/main/java/com/ribani/app/data/repository/MedicationRepository.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/data/repository/MedicationRepository.kt	(date 1792307056915)
+@@ -6,7 +6,9 @@
+ import com.ribani.app.data.remote.ActualizarTomaRequest
+ import com.ribani.app.data.remote.MedicamentoResponse
+ import com.ribani.app.data.remote.TomaResponse
++import com.ribani.app.data.remote.ApiErrorParser
+ import com.ribani.app.notifications.MedicationAlarmScheduler
++import com.ribani.app.notifications.MedicationAlarmNotifications
+ import java.time.Instant
+ import java.time.LocalDate
+ import java.time.ZoneId
+@@ -32,7 +34,7 @@
+     val dosage: String,
+     val time: String,
+     val status: MedicationStatus = MedicationStatus.PENDING,
+-    /** programada_para original (ISO 8601) para programar alarmas exactas. */
++    /** Hora efectiva de aviso (ISO 8601); incluye aplazamientos. */
+     val programadaIso: String? = null,
+     /** Instrucciones del medicamento (del catálogo GET /medicamentos). */
+     val instrucciones: String? = null,
+@@ -51,11 +53,11 @@
+     val pendingMedications: List<MedicationOccurrence> = emptyList(),
+     val medications: List<Medication> = emptyList(),
+     val history: List<MedicationOccurrence> = emptyList(),
+-    /** true cuando los datos vienen del backend (no de los demo). */
++    /** true cuando los datos vienen del backend. */
+     val cargado: Boolean = false,
+     /** true mientras corre un refresco iniciado por pull-to-refresh. */
+     val refrescando: Boolean = false,
+-    /** Mensaje de estado para la UI (offline/demo). */
++    /** Mensaje de estado para la UI. */
+     val mensajeEstado: String? = null
+ )
+ 
+@@ -68,31 +70,21 @@
+  *   la hora real tomada_en si existe).
+  * - "Mis medicamentos": derivado de las tomas (el alta/edición de
+  *   medicamentos la hace el familiar desde su panel web).
+- * - Sin sesión o sin conexión: se conservan los datos demo como
+- *   fallback de UI; las acciones no pegan al backend sin sesión.
++ * - Sin sesión se limpia el estado; sin conexión solo conserva datos reales
++ *   de la misma cuenta y muestra que no pudo actualizarlos.
+  */
+ object MedicationRepository {
+ 
+     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+     private val formatoHora = DateTimeFormatter.ofPattern("hh:mm a")
+-    private val formatoDiaHora = DateTimeFormatter.ofPattern("'Ayer', hh:mm a'.'")
++    private val formatoDiaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm a")
+ 
+-    /** Datos demo de respaldo (offline/sin sesión) para no dejar vacío. */
+-    private val demoState = MedicationUiState(
+-        pendingMedications = listOf(
+-            MedicationOccurrence("occ_demo_1", "med_demo_1", "Paracetamol", "500 mg", "08:00 AM"),
+-            MedicationOccurrence("occ_demo_2", "med_demo_2", "Enalapril", "10 mg", "02:00 PM")
+-        ),
+-        medications = listOf(
+-            Medication("med_demo_1", "Paracetamol", "500 mg", "Cada 8 horas", "Tomar con abundante agua"),
+-            Medication("med_demo_2", "Enalapril", "10 mg", "Cada 12 horas", "Tomar después de las comidas")
+-        ),
+-        history = emptyList(),
+-        cargado = false,
+-        mensajeEstado = "Sin conexión con el servidor: datos de demostración."
+-    )
++    /** Sin medicamentos ficticios en el flujo del usuario. */
++    private val emptyState = MedicationUiState(mensajeEstado = "Inicia sesión para consultar tus medicamentos.")
++    @Volatile private var usuarioId: String? = null
++    val usuarioActual: String? get() = usuarioId
+ 
+-    private val _uiState = MutableStateFlow(demoState)
++    private val _uiState = MutableStateFlow(emptyState)
+     val uiState: StateFlow<MedicationUiState> = _uiState.asStateFlow()
+ 
+     fun initialize(context: Context) {
+@@ -100,7 +92,7 @@
+             val manager = SessionManager(context)
+ 
+             if (!manager.isLoggedIn.first()) {
+-                _uiState.value = demoState
++                limpiar(context)
+                 return@launch
+             }
+ 
+@@ -113,9 +105,11 @@
+         val manager = SessionManager(context)
+ 
+         if (!manager.isLoggedIn.first()) {
+-            _uiState.value = demoState
++            limpiar(context)
+             return
+         }
++        val propietario = manager.currentUser()?.id ?: return
++        if (usuarioId != propietario) { _uiState.value = MedicationUiState(); usuarioId = propietario; MedicationAlarmScheduler.cancelarTodas(context) }
+ 
+         // Pull-to-refresh: indicador visible durante la recarga.
+         _uiState.value = _uiState.value.copy(refrescando = true)
+@@ -144,7 +138,7 @@
+ 
+             val tomasPendientes = ApiClient.medicamentosService.listarTomas(
+                 estado = "PENDIENTE",
+-                desde = desde,
++                desde = hoy.minusDays(1).atStartOfDay(zona).toInstant().toString(),
+                 hasta = hasta,
+             )
+             val tomasRegistradas = ApiClient.medicamentosService.listarTomas(
+@@ -158,7 +152,10 @@
+                 hasta = hasta,
+             )
+ 
+-            val pendientesUI = tomasPendientes.map { it.aOcurrencia(nombrePorId) }
++            val pendientesUI = tomasPendientes.filter {
++                nombrePorId[it.medicamento_id]?.activo == true &&
++                    Instant.parse(it.recordar_en ?: it.programada_para).atZone(zona).toLocalDate() == hoy
++            }.map { it.aOcurrencia(nombrePorId) }
+ 
+             // Tarjetas "Mis medicamentos" desde el catálogo real del
+             // backend; los horarios mostrados se derivan de las tomas
+@@ -192,6 +189,7 @@
+                 .sortedByDescending { it.programada_para }
+                 .map { it.aOcurrenciaHistorial(nombrePorId) }
+ 
++            if (manager.currentUser()?.id != propietario || usuarioId != propietario) return
+             _uiState.value = MedicationUiState(
+                 pendingMedications = pendientesUI,
+                 medications = catalogoUI,
+@@ -203,14 +201,16 @@
+ 
+             // Con el estado fresco del backend, reprograma las alarmas de
+             // las tomas pendientes de hoy ( MedicationAlarmScheduler).
+-            MedicationAlarmScheduler.programarPendientes(context)
++            ConfiguracionRepository.obtener(context)
++            if (manager.currentUser()?.id == propietario && usuarioId == propietario) MedicationAlarmScheduler.programarPendientes(context)
+         } catch (e: Exception) {
+-            // Sin red/401/etc.: conservar lo que haya (o demo) y avisar.
++            // Sin red/401/etc.: conservar datos reales de la cuenta y avisar.
++            if (manager.currentUser()?.id != propietario || usuarioId != propietario) return
+             _uiState.value =
+-                (_uiState.value.takeIf { it.cargado } ?: demoState)
++                (_uiState.value.takeIf { it.cargado } ?: MedicationUiState())
+                     .copy(
+                         refrescando = false,
+-                        mensajeEstado = "No se pudo actualizar: ${e.message ?: "sin conexión"}"
++                        mensajeEstado = "No se pudo actualizar. Los datos pueden estar desactualizados. ${ApiErrorParser.getErrorMessage(e)}"
+                     )
+         }
+     }
+@@ -226,42 +226,54 @@
+     }
+ 
+     /**
+-     * Posponer: el backend no define estado POSTPONED (solo TOMADA/OMITIDA),
+-     * igual que en la web la opción disponible es mover la toma.
+-     * Aquí se queda local (badge) sin tocar el backend; persistencia real
+-     * de "posponer" requeriría endpoint (Pendiente en servidor).
++     * Posponer una vez diez minutos dentro de la ventana original.
++     * El backend persiste POSPUESTA y devuelve recordar_en.
+      */
+-    fun postpone(occurrenceId: String) {
+-        val current = _uiState.value
+-        _uiState.value = current.copy(
+-            pendingMedications = current.pendingMedications.map {
+-                if (it.id == occurrenceId) {
+-                    it.copy(status = MedicationStatus.POSTPONED)
+-                } else {
+-                    it
+-                }
+-            }
+-        )
++    fun postpone(context: Context, occurrenceId: String) {
++        scope.launch {
++            try {
++                ApiClient.medicamentosService.posponer(occurrenceId)
++                MedicationAlarmNotifications.cancelar(context, occurrenceId)
++                refrescar(context)
++            } catch (e: Exception) {
++                _uiState.value = _uiState.value.copy(mensajeEstado = ApiErrorParser.getErrorMessage(e))
++            }
++        }
+     }
++
++    fun limpiar(context: Context) {
++        usuarioId = null
++        _uiState.value = emptyState
++        MedicationAlarmScheduler.cancelarTodas(context)
++    }
++
++    suspend fun registrarDesdeAlarma(context: Context, occurrenceId: String, estado: String): Boolean {
++        ApiClient.init(context.applicationContext)
++        val manager = SessionManager(context)
++        val propietario = manager.currentUser()?.id ?: return false
++        if (!manager.isLoggedIn.first()) return false
++        return try {
++            val toma = ApiClient.medicamentosService.obtenerToma(occurrenceId)
++            if (manager.currentUser()?.id != propietario || toma.adulto_id != propietario) return false
++            if (toma.estado != estado) ApiClient.medicamentosService.actualizarToma(occurrenceId, ActualizarTomaRequest(estado = estado))
++            MedicationAlarmScheduler.cancelar(context, occurrenceId)
++            MedicationAlarmNotifications.cancelar(context, occurrenceId)
++            if (manager.currentUser()?.id == propietario) scope.launch { refrescar(context) }
++            true
++        } catch (e: Exception) {
++            if (manager.currentUser()?.id == propietario) _uiState.value = _uiState.value.copy(mensajeEstado = ApiErrorParser.getErrorMessage(e))
++            false
++        }
++    }
+ 
+     private fun actualizar(
+         context: Context,
+         occurrenceId: String,
+         cambio: ActualizarTomaRequest,
+     ) {
+-        // Solo si la lista es del backend (id UUID real, no demo).
+-        if (!_uiState.value.cargado) return
+-
++        // Solo si la lista es del backend (id UUID real).
+         scope.launch {
+-            try {
+-                ApiClient.medicamentosService.actualizarToma(occurrenceId, cambio)
+-                // Re-sincroniza con el backend (estado en server es la verdad).
+-                refrescar(context)
+-            } catch (e: Exception) {
+-                _uiState.value = _uiState.value.copy(
+-                    mensajeEstado = "No se pudo registrar la toma: ${e.message ?: "intenta de nuevo"}"
+-                )
+-            }
++            registrarDesdeAlarma(context, occurrenceId, cambio.estado ?: return@launch)
+         }
+     }
+ 
+@@ -282,9 +294,9 @@
+                 ?: "Medicamento",
+             dosage = medicamento?.let { "${it.dosis} ${it.unidad_dosis}" }
+                 ?: dosageDe(this),
+-            time = programadaParaLocal().format(formatoHora),
+-            status = MedicationStatus.PENDING,
+-            programadaIso = programada_para,
++            time = Instant.parse(recordar_en ?: programada_para).atZone(ZoneId.systemDefault()).format(formatoHora),
++            status = if (estado == "POSPUESTA") MedicationStatus.POSTPONED else MedicationStatus.PENDING,
++            programadaIso = recordar_en ?: programada_para,
+             instrucciones = medicamento?.instrucciones,
+         )
+     }
+Index: app/src/main/java/com/ribani/app/screens/settings/SettingsScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.settings\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.rememberScrollState\r\nimport androidx.compose.foundation.verticalScroll\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Info\r\nimport androidx.compose.material.icons.rounded.Lock\r\nimport androidx.compose.material.icons.rounded.VerifiedUser\r\nimport androidx.compose.material.icons.rounded.Settings\r\nimport androidx.compose.material.icons.rounded.VolumeUp\r\nimport androidx.compose.material3.AlertDialog\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.ButtonDefaults\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.material3.TextButton\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.graphics.vector.ImageVector\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport com.ribani.app.ui.theme.ContenedorCircularIcono\r\nimport com.ribani.app.ui.theme.SuperficieTarjeta\r\nimport com.ribani.app.ui.theme.TextoOscuro\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\n\r\n@Composable\r\nfun SettingsScreen(\r\n    onLogout: () -> Unit = {},\r\n    onOpenTwoFactor: () -> Unit = {}\r\n) {\r\n    var showLogoutDialog by remember { mutableStateOf(false) }\r\n\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .verticalScroll(rememberScrollState())\r\n            .padding(horizontal = 30.dp, vertical = 24.dp)\r\n    ) {\r\n        Row(\r\n            verticalAlignment = Alignment.CenterVertically,\r\n            modifier = Modifier.padding(bottom = 32.dp)\r\n        ) {\r\n            Icon(Icons.Rounded.Settings, null, Modifier.size(72.dp), tint = TextoOscuro)\r\n            Text(\"Configuración\", fontSize = 38.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 24.dp))\r\n        }\r\n        Text(\"Información\", fontSize = 28.sp, modifier = Modifier.padding(start = 40.dp, bottom = 14.dp))\r\n        SettingCard(Icons.Rounded.Lock, \"Protección: Desactivada\")\r\n        //ACA ES ACTIVADA O DESACTIVADA DEPENDIENDO SI EL USSUARIO ADULTO_MAYOR YA ESTA VINCULADO CON EL CUIDADOR\r\n        Spacer(Modifier.height(18.dp))\r\n        SettingCard(Icons.Rounded.Info, \"Acerca de RIBANI\")\r\n        Spacer(Modifier.height(18.dp))\r\n        SettingCard(Icons.Rounded.VolumeUp, \"Volumen de alertas\")\r\n        Spacer(Modifier.height(48.dp))\r\n        SettingCard(Icons.Rounded.VerifiedUser, \"Seguridad en dos pasos\", onClick = onOpenTwoFactor)\r\n        Spacer(Modifier.height(48.dp))\r\n        Text(\"Acciones\", fontSize = 28.sp, modifier = Modifier.padding(start = 40.dp, bottom = 14.dp))\r\n        Button(\r\n            onClick = { showLogoutDialog = true },\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .height(70.dp),\r\n            shape = RoundedCornerShape(36.dp),\r\n            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF2020))\r\n        ) {\r\n            Text(\"Cerrar Sesión\", fontSize = 27.sp, color = Color.White)\r\n        }\r\n    }\r\n\r\n    if (showLogoutDialog) {\r\n        AlertDialog(\r\n            onDismissRequest = { showLogoutDialog = false },\r\n            title = {\r\n                Text(\"Cerrar Sesión\", fontSize = 24.sp, fontWeight = FontWeight.Bold)\r\n            },\r\n            text = {\r\n                Text(\"¿Estás seguro de que deseas cerrar sesión?\", fontSize = 18.sp)\r\n            },\r\n            confirmButton = {\r\n                TextButton(\r\n                    onClick = {\r\n                        showLogoutDialog = false\r\n                        onLogout()\r\n                    }\r\n                ) {\r\n                    Text(\"Sí, cerrar sesión\", fontSize = 18.sp, color = Color(0xFFEF2020))\r\n                }\r\n            },\r\n            dismissButton = {\r\n                TextButton(onClick = { showLogoutDialog = false }) {\r\n                    Text(\"Cancelar\", fontSize = 18.sp, color = Color.DarkGray)\r\n                }\r\n            }\r\n        )\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun SettingCard(\r\n    icon: ImageVector,\r\n    label: String,\r\n    onClick: (() -> Unit)? = null\r\n) {\r\n    Row(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .height(100.dp)\r\n            .background(SuperficieTarjeta, RoundedCornerShape(26.dp))\r\n            .let { mod ->\r\n                if (onClick != null) mod.clickable(onClick = onClick) else mod\r\n            }\r\n            .padding(horizontal = 44.dp),\r\n        verticalAlignment = Alignment.CenterVertically\r\n    ) {\r\n        Icon(\r\n            icon, null,\r\n            Modifier\r\n                .size(62.dp)\r\n                .background(ContenedorCircularIcono, CircleShape)\r\n                .padding(17.dp),\r\n            tint = TextoOscuro\r\n        )\r\n        Text(label, fontSize = 22.sp, modifier = Modifier.padding(start = 22.dp))\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/settings/SettingsScreen.kt b/app/src/main/java/com/ribani/app/screens/settings/SettingsScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/settings/SettingsScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/settings/SettingsScreen.kt	(date 1792305696404)
+@@ -1,143 +1,122 @@
+ package com.ribani.app.screens.settings
+ 
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.clickable
+-import androidx.compose.foundation.layout.Column
++import android.content.Intent
++import android.provider.Settings
++import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.selection.toggleable
+ import androidx.compose.foundation.verticalScroll
+-import androidx.compose.foundation.layout.Row
+-import androidx.compose.foundation.layout.Spacer
+-import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.layout.height
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.layout.size
+-import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.foundation.shape.RoundedCornerShape
+-import androidx.compose.material.icons.Icons
+-import androidx.compose.material.icons.rounded.Info
+-import androidx.compose.material.icons.rounded.Lock
+-import androidx.compose.material.icons.rounded.VerifiedUser
+-import androidx.compose.material.icons.rounded.Settings
+-import androidx.compose.material.icons.rounded.VolumeUp
+-import androidx.compose.material3.AlertDialog
+-import androidx.compose.material3.Button
+-import androidx.compose.material3.ButtonDefaults
+-import androidx.compose.material3.Icon
+-import androidx.compose.material3.Text
+-import androidx.compose.material3.TextButton
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.mutableStateOf
+-import androidx.compose.runtime.remember
+-import androidx.compose.runtime.setValue
++import androidx.compose.material3.*
++import androidx.compose.runtime.*
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+-import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.graphics.vector.ImageVector
+-import androidx.compose.ui.text.font.FontWeight
+-import com.ribani.app.ui.theme.ContenedorCircularIcono
+-import com.ribani.app.ui.theme.SuperficieTarjeta
+-import com.ribani.app.ui.theme.TextoOscuro
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.semantics.LiveRegionMode
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.liveRegion
++import androidx.compose.ui.semantics.semantics
+ import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.unit.sp
++import com.ribani.app.data.remote.ActualizarConfiguracionRequest
++import com.ribani.app.data.remote.ApiErrorParser
++import com.ribani.app.data.remote.ConfiguracionResponse
++import com.ribani.app.data.repository.ConfiguracionRepository
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.launch
+ 
+ @Composable
+-fun SettingsScreen(
+-    onLogout: () -> Unit = {},
+-    onOpenTwoFactor: () -> Unit = {}
+-) {
+-    var showLogoutDialog by remember { mutableStateOf(false) }
+-
+-    Column(
+-        modifier = Modifier
+-            .fillMaxSize()
+-            .verticalScroll(rememberScrollState())
+-            .padding(horizontal = 30.dp, vertical = 24.dp)
+-    ) {
+-        Row(
+-            verticalAlignment = Alignment.CenterVertically,
+-            modifier = Modifier.padding(bottom = 32.dp)
++fun SettingsScreen(onLogout: () -> Unit, onOpenTwoFactor: () -> Unit, onOpenInvitaciones: () -> Unit = {}) {
++    val context = LocalContext.current
++    val scope = rememberCoroutineScope()
++    var configuracion by remember { mutableStateOf<ConfiguracionResponse?>(null) }
++    var cargando by remember { mutableStateOf(true) }
++    var guardando by remember { mutableStateOf(false) }
++    var error by remember { mutableStateOf<String?>(null) }
++    var salir by remember { mutableStateOf(false) }
++    var acerca by remember { mutableStateOf(false) }
++    fun cargar() {
++        scope.launch {
++            cargando = true
++            error = null
++            try { configuracion = ConfiguracionRepository.obtener(context) }
++            catch (e: CancellationException) { throw e }
++            catch (e: Exception) { error = ApiErrorParser.getErrorMessage(e) }
++            finally { cargando = false }
++        }
++    }
++    fun guardar(body: ActualizarConfiguracionRequest) {
++        scope.launch {
++            guardando = true
++            error = null
++            try { configuracion = ConfiguracionRepository.actualizar(context, body) }
++            catch (e: CancellationException) { throw e }
++            catch (e: Exception) { error = ApiErrorParser.getErrorMessage(e) }
++            finally { guardando = false }
++        }
++    }
++    LaunchedEffect(Unit) { cargar() }
++    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
++        Column(
++            Modifier.widthIn(max = 640.dp).fillMaxWidth().verticalScroll(rememberScrollState())
++                .padding(24.dp),
++            verticalArrangement = Arrangement.spacedBy(20.dp)
+         ) {
+-            Icon(Icons.Rounded.Settings, null, Modifier.size(72.dp), tint = TextoOscuro)
+-            Text("Configuración", fontSize = 38.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 24.dp))
+-        }
+-        Text("Información", fontSize = 28.sp, modifier = Modifier.padding(start = 40.dp, bottom = 14.dp))
+-        SettingCard(Icons.Rounded.Lock, "Protección: Desactivada")
+-        //ACA ES ACTIVADA O DESACTIVADA DEPENDIENDO SI EL USSUARIO ADULTO_MAYOR YA ESTA VINCULADO CON EL CUIDADOR
+-        Spacer(Modifier.height(18.dp))
+-        SettingCard(Icons.Rounded.Info, "Acerca de RIBANI")
+-        Spacer(Modifier.height(18.dp))
+-        SettingCard(Icons.Rounded.VolumeUp, "Volumen de alertas")
+-        Spacer(Modifier.height(48.dp))
+-        SettingCard(Icons.Rounded.VerifiedUser, "Seguridad en dos pasos", onClick = onOpenTwoFactor)
+-        Spacer(Modifier.height(48.dp))
+-        Text("Acciones", fontSize = 28.sp, modifier = Modifier.padding(start = 40.dp, bottom = 14.dp))
+-        Button(
+-            onClick = { showLogoutDialog = true },
+-            modifier = Modifier
+-                .fillMaxWidth()
+-                .height(70.dp),
+-            shape = RoundedCornerShape(36.dp),
+-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF2020))
+-        ) {
+-            Text("Cerrar Sesión", fontSize = 27.sp, color = Color.White)
+-        }
+-    }
+-
+-    if (showLogoutDialog) {
+-        AlertDialog(
+-            onDismissRequest = { showLogoutDialog = false },
+-            title = {
+-                Text("Cerrar Sesión", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+-            },
+-            text = {
+-                Text("¿Estás seguro de que deseas cerrar sesión?", fontSize = 18.sp)
+-            },
+-            confirmButton = {
+-                TextButton(
+-                    onClick = {
+-                        showLogoutDialog = false
+-                        onLogout()
+-                    }
+-                ) {
+-                    Text("Sí, cerrar sesión", fontSize = 18.sp, color = Color(0xFFEF2020))
++            Text("Configuración", style = MaterialTheme.typography.headlineMedium)
++            Text("Tus vínculos, avisos y opciones de seguridad.", style = MaterialTheme.typography.bodyLarge)
++            if (cargando) LinearProgressIndicator(Modifier.fillMaxWidth())
++            error?.let {
++                Text(it, color = MaterialTheme.colorScheme.error,
++                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
++                OutlinedButton(onClick = { cargar() }, enabled = !cargando) { Text("Volver a intentar") }
++            }
++            Card(Modifier.fillMaxWidth()) {
++                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
++                    Text("Vínculo familiar", style = MaterialTheme.typography.titleLarge)
++                    Text(configuracion?.let {
++                        if (it.familiares_activos > 0) "Tienes ${it.familiares_activos} familiar(es) con vínculo activo."
++                        else "Aún no tienes familiares con vínculo activo."
++                    } ?: "El estado se confirma al consultar el servidor.")
++                    OutlinedButton(onClick = onOpenInvitaciones) { Text("Revisar invitaciones") }
++                }
++            }
++            configuracion?.let { c ->
++                Text("Avisos", style = MaterialTheme.typography.titleLarge)
++                AjusteInterruptor("Permitir notificaciones", "Aplica a los avisos de RIBANI y recordatorios.", c.notificaciones_habilitadas, !guardando) {
++                    guardar(ActualizarConfiguracionRequest(notificaciones_habilitadas = it))
++                }
++                AjusteInterruptor("Recordatorios de medicamentos", "Las tomas siguen visibles aunque desactives sus avisos.", c.recordatorio_medicamentos, !guardando) {
++                    guardar(ActualizarConfiguracionRequest(recordatorio_medicamentos = it))
+                 }
+-            },
+-            dismissButton = {
+-                TextButton(onClick = { showLogoutDialog = false }) {
+-                    Text("Cancelar", fontSize = 18.sp, color = Color.DarkGray)
+-                }
+-            }
+-        )
++            }
++            if (guardando) LinearProgressIndicator(Modifier.fillMaxWidth())
++            OutlinedButton(onClick = {
++                runCatching { context.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS)) }
++                    .onFailure { error = "No se pudo abrir el volumen del dispositivo." }
++            }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Volumen de alertas del dispositivo") }
++            OutlinedButton(onClick = onOpenTwoFactor, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Seguridad en dos pasos") }
++            OutlinedButton(onClick = { acerca = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Acerca de RIBANI") }
++            Button(onClick = { salir = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
++                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Cerrar sesión") }
++        }
+     }
++    if (acerca) AlertDialog(onDismissRequest = { acerca = false },
++        title = { Text("RIBANI") },
++        text = { Text("Acompañamiento para adultos mayores: medicamentos, contactos y alertas compartidas con sus familiares. Los sensores, permisos y la conexión del dispositivo determinan la disponibilidad de cada función.") },
++        confirmButton = { TextButton(onClick = { acerca = false }) { Text("Entendido") } })
++    if (salir) AlertDialog(onDismissRequest = { salir = false },
++        title = { Text("Cerrar sesión") }, text = { Text("Se detendrán los avisos y el seguimiento de esta cuenta en el dispositivo.") },
++        confirmButton = { TextButton(onClick = { salir = false; onLogout() }) { Text("Cerrar sesión") } },
++        dismissButton = { TextButton(onClick = { salir = false }) { Text("Cancelar") } })
+ }
+ 
+ @Composable
+-private fun SettingCard(
+-    icon: ImageVector,
+-    label: String,
+-    onClick: (() -> Unit)? = null
+-) {
+-    Row(
+-        modifier = Modifier
+-            .fillMaxWidth()
+-            .height(100.dp)
+-            .background(SuperficieTarjeta, RoundedCornerShape(26.dp))
+-            .let { mod ->
+-                if (onClick != null) mod.clickable(onClick = onClick) else mod
++private fun AjusteInterruptor(titulo: String, detalle: String, valor: Boolean, habilitado: Boolean, cambiar: (Boolean) -> Unit) {
++    Card(Modifier.fillMaxWidth().toggleable(value = valor, enabled = habilitado, role = Role.Switch, onValueChange = cambiar)) {
++        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
++            Column(Modifier.weight(1f)) {
++                Text(titulo, style = MaterialTheme.typography.titleMedium)
++                Text(detalle, style = MaterialTheme.typography.bodyMedium)
+             }
+-            .padding(horizontal = 44.dp),
+-        verticalAlignment = Alignment.CenterVertically
+-    ) {
+-        Icon(
+-            icon, null,
+-            Modifier
+-                .size(62.dp)
+-                .background(ContenedorCircularIcono, CircleShape)
+-                .padding(17.dp),
+-            tint = TextoOscuro
+-        )
+-        Text(label, fontSize = 22.sp, modifier = Modifier.padding(start = 22.dp))
++            Switch(checked = valor, onCheckedChange = null, enabled = habilitado)
++        }
+     }
+ }
+Index: app/src/main/java/com/ribani/app/screens/fall/FallAlertScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.fall\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Warning\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.ButtonDefaults\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableIntStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport kotlinx.coroutines.delay\r\n\r\nprivate const val SEGUNDOS_LIMITE = 30\r\n\r\n/**\r\n * Alerta de posible caída en pantalla completa. La alerta (tipo CAIDA)\r\n * ya se envió al backend al detectarla; el contador informa al adulto\r\n * cuánto tiempo tiene para confirmar que está bien. Al vencer el tiempo\r\n * sin confirmación se cierra la pantalla (onTiempoAgotado) — la alerta\r\n * sigue abierta en el backend para el familiar.\r\n */\r\n@Composable\r\nfun FallAlertScreen(\r\n    onOkay: () -> Unit,\r\n    onNeedHelp: () -> Unit,\r\n    onTiempoAgotado: () -> Unit,\r\n) {\r\n    var segundosRestantes by remember { mutableIntStateOf(SEGUNDOS_LIMITE) }\r\n\r\n    // Cuenta regresiva: al llegar a 0 sin confirmación se cierra la pantalla;\r\n    // la alerta CAIDA ya quedó abierta en el backend desde la detección.\r\n    LaunchedEffect(Unit) {\r\n        while (segundosRestantes > 0) {\r\n            delay(1_000)\r\n            segundosRestantes--\r\n        }\r\n        onTiempoAgotado()\r\n    }\r\n\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .background(Color(0xFFE3E0FF))\r\n            .padding(30.dp),\r\n        horizontalAlignment = Alignment.CenterHorizontally,\r\n        verticalArrangement = Arrangement.Center\r\n    ) {\r\n\r\n        Icon(\r\n            imageVector = Icons.Rounded.Warning,\r\n            contentDescription = \"Alerta de caída\",\r\n            modifier = Modifier.size(90.dp),\r\n            tint = Color(0xFFC62828)\r\n        )\r\n\r\n        Spacer(\r\n            modifier = Modifier.height(24.dp)\r\n        )\r\n\r\n        Text(\r\n            text = \"¡Alerta de posible\\ncaída!\",\r\n            fontSize = 28.sp,\r\n            fontWeight = FontWeight.Bold\r\n        )\r\n\r\n        Spacer(\r\n            modifier = Modifier.height(30.dp)\r\n        )\r\n\r\n        Text(\r\n            text = \"¿Te encuentras bien?\",\r\n            fontSize = 21.sp\r\n        )\r\n\r\n        Spacer(\r\n            modifier = Modifier.height(35.dp)\r\n        )\r\n\r\n        Button(\r\n            onClick = onOkay,\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .height(65.dp),\r\n            shape = RoundedCornerShape(20.dp),\r\n            colors = ButtonDefaults.buttonColors(\r\n                containerColor = Color(0xFF006B3C)\r\n            )\r\n        ) {\r\n\r\n            Text(\r\n                text = \"ESTOY BIEN\",\r\n                fontSize = 20.sp\r\n            )\r\n        }\r\n\r\n        Spacer(\r\n            modifier = Modifier.height(35.dp)\r\n        )\r\n\r\n        Button(\r\n            onClick = onNeedHelp,\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .height(65.dp),\r\n            shape = RoundedCornerShape(20.dp),\r\n            colors = ButtonDefaults.buttonColors(\r\n                containerColor = Color(0xFFC62828)\r\n            )\r\n        ) {\r\n\r\n            Text(\r\n                text = \"¡NECESITO AYUDA!\",\r\n                fontSize = 20.sp\r\n            )\r\n        }\r\n\r\n        Spacer(\r\n            modifier = Modifier.height(50.dp)\r\n        )\r\n\r\n        Text(\r\n            text = \"TIEMPO RESTANTE: ${segundosRestantes}s\",\r\n            fontSize = 18.sp,\r\n            fontWeight = FontWeight.SemiBold,\r\n            color = if (segundosRestantes <= 10) Color(0xFFC62828) else Color(0xFF211F24)\r\n        )\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/fall/FallAlertScreen.kt b/app/src/main/java/com/ribani/app/screens/fall/FallAlertScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/fall/FallAlertScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/fall/FallAlertScreen.kt	(date 1792305752592)
+@@ -1,6 +1,13 @@
+ package com.ribani.app.screens.fall
+ 
+ import androidx.compose.foundation.background
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.foundation.layout.heightIn
++import androidx.compose.foundation.layout.safeDrawingPadding
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.semantics.liveRegion
++import androidx.compose.ui.semantics.LiveRegionMode
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Spacer
+@@ -22,6 +29,7 @@
+ import androidx.compose.runtime.mutableIntStateOf
+ import androidx.compose.runtime.remember
+ import androidx.compose.runtime.setValue
++import androidx.compose.runtime.rememberUpdatedState
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.graphics.Color
+@@ -44,23 +52,31 @@
+     onOkay: () -> Unit,
+     onNeedHelp: () -> Unit,
+     onTiempoAgotado: () -> Unit,
++    ocupado: Boolean = false,
++    error: String? = null,
++    esCaida: Boolean = true,
+ ) {
+     var segundosRestantes by remember { mutableIntStateOf(SEGUNDOS_LIMITE) }
+ 
+     // Cuenta regresiva: al llegar a 0 sin confirmación se cierra la pantalla;
+     // la alerta CAIDA ya quedó abierta en el backend desde la detección.
+-    LaunchedEffect(Unit) {
++    val ocupadoActual by rememberUpdatedState(ocupado)
++    val errorActual by rememberUpdatedState(error)
++    LaunchedEffect(esCaida) {
++        if (!esCaida) return@LaunchedEffect
+         while (segundosRestantes > 0) {
+             delay(1_000)
+             segundosRestantes--
+         }
+-        onTiempoAgotado()
++        if (!ocupadoActual && errorActual == null) onTiempoAgotado()
+     }
+ 
+     Column(
+         modifier = Modifier
+             .fillMaxSize()
++            .safeDrawingPadding()
+             .background(Color(0xFFE3E0FF))
++            .verticalScroll(rememberScrollState())
+             .padding(30.dp),
+         horizontalAlignment = Alignment.CenterHorizontally,
+         verticalArrangement = Arrangement.Center
+@@ -78,7 +94,7 @@
+         )
+ 
+         Text(
+-            text = "¡Alerta de posible\ncaída!",
++            text = if (esCaida) "¡Alerta de posible caída!" else "Solicitar ayuda",
+             fontSize = 28.sp,
+             fontWeight = FontWeight.Bold
+         )
+@@ -88,7 +104,7 @@
+         )
+ 
+         Text(
+-            text = "¿Te encuentras bien?",
++            text = if (esCaida) "¿Te encuentras bien?" else "Enviaremos una alerta SOS a RIBANI para tus familiares.",
+             fontSize = 21.sp
+         )
+ 
+@@ -98,9 +114,10 @@
+ 
+         Button(
+             onClick = onOkay,
++            enabled = !ocupado,
+             modifier = Modifier
+                 .fillMaxWidth()
+-                .height(65.dp),
++                .heightIn(min = 65.dp),
+             shape = RoundedCornerShape(20.dp),
+             colors = ButtonDefaults.buttonColors(
+                 containerColor = Color(0xFF006B3C)
+@@ -108,7 +125,7 @@
+         ) {
+ 
+             Text(
+-                text = "ESTOY BIEN",
++                text = if (esCaida) "ESTOY BIEN" else "Volver",
+                 fontSize = 20.sp
+             )
+         }
+@@ -119,9 +136,10 @@
+ 
+         Button(
+             onClick = onNeedHelp,
++            enabled = !ocupado,
+             modifier = Modifier
+                 .fillMaxWidth()
+-                .height(65.dp),
++                .heightIn(min = 65.dp),
+             shape = RoundedCornerShape(20.dp),
+             colors = ButtonDefaults.buttonColors(
+                 containerColor = Color(0xFFC62828)
+@@ -129,7 +147,7 @@
+         ) {
+ 
+             Text(
+-                text = "¡NECESITO AYUDA!",
++                text = if (ocupado) "Guardando…" else if (esCaida) "¡NECESITO AYUDA!" else "Enviar SOS",
+                 fontSize = 20.sp
+             )
+         }
+@@ -138,11 +156,12 @@
+             modifier = Modifier.height(50.dp)
+         )
+ 
+-        Text(
++        error?.let { Text(it, color = Color(0xFFC62828), modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
++        if (esCaida) Text(
+             text = "TIEMPO RESTANTE: ${segundosRestantes}s",
+             fontSize = 18.sp,
+             fontWeight = FontWeight.SemiBold,
+             color = if (segundosRestantes <= 10) Color(0xFFC62828) else Color(0xFF211F24)
+         )
+     }
+-}
+\ No newline at end of file
++}
+Index: app/src/main/java/com/ribani/app/FallAlertActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app\r\n\r\nimport android.app.NotificationManager\r\nimport android.os.Build\r\nimport android.os.Bundle\r\nimport android.view.WindowManager\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\nimport androidx.lifecycle.lifecycleScope\r\nimport com.ribani.app.data.repository.AlertasRepository\r\nimport com.ribani.app.screens.fall.FallAlertScreen\r\nimport com.ribani.app.ui.theme.RIBANITheme\r\nimport kotlinx.coroutines.launch\r\n\r\nclass FallAlertActivity : ComponentActivity() {\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n\r\n        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {\r\n            setShowWhenLocked(true)\r\n            setTurnScreenOn(true)\r\n        } else {\r\n            @Suppress(\"DEPRECATION\")\r\n            window.addFlags(\r\n                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or\r\n                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON\r\n            )\r\n        }\r\n\r\n        setContent {\r\n            RIBANITheme {\r\n                FallAlertScreen(\r\n                    onOkay = {\r\n                        // \"ESTOY BIEN\": cierra la alerta CAIDA en el backend\r\n                        // (RESUELTA); el familiar la ve como confirmada.\r\n                        lifecycleScope.launch {\r\n                            AlertasRepository.confirmarBien()\r\n                        }\r\n                        dismissAlert()\r\n                        finish()\r\n                    },\r\n                    onNeedHelp = {\r\n                        // \"¡NECESITO AYUDA!\": escala la CAIDA a EN_ATENCION y\r\n                        // además crea una SOS explícita para el panel familiar.\r\n                        lifecycleScope.launch {\r\n                            AlertasRepository.escalarAlerta()\r\n                            AlertasRepository.enviarAlerta(\r\n                                context = this@FallAlertActivity,\r\n                                tipo = \"SOS\",\r\n                                titulo = \"El adulto mayor pide ayuda\",\r\n                                descripcion =\r\n                                    \"Presionó ¡NECESITO AYUDA! tras una alerta de posible caída.\",\r\n                            )\r\n                        }\r\n                        dismissAlert()\r\n                        finish()\r\n                    },\r\n                    onTiempoAgotado = {\r\n                        // Sin confirmación: la alerta CAIDA sigue abierta en\r\n                        // el backend (se envió al detectar la caída).\r\n                        dismissAlert()\r\n                        finish()\r\n                    }\r\n                )\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun dismissAlert() {\r\n        getSystemService(NotificationManager::class.java)\r\n            .cancel(ALERT_NOTIFICATION_ID)\r\n    }\r\n\r\n    private companion object {\r\n        const val ALERT_NOTIFICATION_ID = 101\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/FallAlertActivity.kt b/app/src/main/java/com/ribani/app/FallAlertActivity.kt
+--- a/app/src/main/java/com/ribani/app/FallAlertActivity.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/FallAlertActivity.kt	(date 1792305851204)
+@@ -8,7 +8,7 @@
+ import androidx.activity.compose.setContent
+ import androidx.lifecycle.lifecycleScope
+ import com.ribani.app.data.repository.AlertasRepository
+-import com.ribani.app.screens.fall.FallAlertScreen
++import com.ribani.app.screens.fall.AlertaAccionScreen
+ import com.ribani.app.ui.theme.RIBANITheme
+ import kotlinx.coroutines.launch
+ 
+@@ -29,39 +29,7 @@
+ 
+         setContent {
+             RIBANITheme {
+-                FallAlertScreen(
+-                    onOkay = {
+-                        // "ESTOY BIEN": cierra la alerta CAIDA en el backend
+-                        // (RESUELTA); el familiar la ve como confirmada.
+-                        lifecycleScope.launch {
+-                            AlertasRepository.confirmarBien()
+-                        }
+-                        dismissAlert()
+-                        finish()
+-                    },
+-                    onNeedHelp = {
+-                        // "¡NECESITO AYUDA!": escala la CAIDA a EN_ATENCION y
+-                        // además crea una SOS explícita para el panel familiar.
+-                        lifecycleScope.launch {
+-                            AlertasRepository.escalarAlerta()
+-                            AlertasRepository.enviarAlerta(
+-                                context = this@FallAlertActivity,
+-                                tipo = "SOS",
+-                                titulo = "El adulto mayor pide ayuda",
+-                                descripcion =
+-                                    "Presionó ¡NECESITO AYUDA! tras una alerta de posible caída.",
+-                            )
+-                        }
+-                        dismissAlert()
+-                        finish()
+-                    },
+-                    onTiempoAgotado = {
+-                        // Sin confirmación: la alerta CAIDA sigue abierta en
+-                        // el backend (se envió al detectar la caída).
+-                        dismissAlert()
+-                        finish()
+-                    }
+-                )
++                AlertaAccionScreen(esCaida = true, onCerrar = { dismissAlert(); finish() })
+             }
+         }
+     }
+Index: app/src/main/java/com/ribani/app/screens/medication/MedicationScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.screens.medication\r\n\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.layout.width\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.foundation.lazy.items\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Check\r\nimport androidx.compose.material.icons.rounded.History\r\nimport androidx.compose.material.icons.rounded.Medication\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.ButtonDefaults\r\nimport androidx.compose.material3.Card\r\nimport androidx.compose.material3.CardDefaults\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.IconButton\r\nimport androidx.compose.material3.OutlinedButton\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.material3.pulltorefresh.PullToRefreshBox\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.ribani.app.ui.theme.ContenedorVerdeSuave\r\nimport com.ribani.app.ui.theme.TextoOscuro\r\nimport com.ribani.app.ui.theme.TextoPrincipal\r\nimport com.ribani.app.ui.theme.TextoSecundario\r\nimport com.ribani.app.ui.theme.TextoAjeno\r\nimport com.ribani.app.ui.theme.SuperficieTarjetaTintada\r\nimport com.ribani.app.ui.theme.VerdeBotonTomar\r\nimport com.ribani.app.ui.theme.VerdeTomado\r\nimport com.ribani.app.ui.theme.Rojo\r\nimport com.ribani.app.data.repository.MedicationOccurrence\r\nimport com.ribani.app.data.repository.MedicationUiState\r\n\r\n@Composable\r\nfun MedicationScreen(\r\n    uiState: MedicationUiState,\r\n    onOpenDetail: (String) -> Unit,\r\n    onOpenHistory: () -> Unit,\r\n    onTaken: (String) -> Unit,\r\n    onPostpone: (String) -> Unit,\r\n    onOmit: (String) -> Unit,\r\n    /** Pull-to-refresh: recarga tomas/medicamentos del backend. */\r\n    onRefrescar: () -> Unit,\r\n) {\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .padding(horizontal = 24.dp, vertical = 20.dp)\r\n    ) {\r\n        Row(\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .padding(bottom = 20.dp),\r\n            verticalAlignment = Alignment.CenterVertically,\r\n            horizontalArrangement = Arrangement.SpaceBetween\r\n        ) {\r\n            Row(verticalAlignment = Alignment.CenterVertically) {\r\n                Icon(\r\n                    Icons.Rounded.Medication,\r\n                    contentDescription = null,\r\n                    modifier = Modifier.size(60.dp),\r\n                    tint = TextoOscuro\r\n                )\r\n                Text(\r\n                    text = \"Medicamentos\",\r\n                    fontSize = 32.sp,\r\n                    fontWeight = FontWeight.Bold,\r\n                    modifier = Modifier.padding(start = 16.dp)\r\n                )\r\n            }\r\n            IconButton(onClick = onOpenHistory) {\r\n                Icon(\r\n                    Icons.Rounded.History,\r\n                    contentDescription = \"Historial\",\r\n                    modifier = Modifier.size(36.dp),\r\n                    tint = TextoOscuro\r\n                )\r\n            }\r\n        }\r\n\r\n        Text(\r\n            text = \"Pendientes de Hoy\",\r\n            fontSize = 22.sp,\r\n            fontWeight = FontWeight.Bold,\r\n            modifier = Modifier.padding(bottom = 12.dp)\r\n        )\r\n\r\n        // Pull-to-refresh: deslizar hacia abajo recarga del backend\r\n        // (igual que salir y entrar, sin salir de la pantalla).\r\n        val refrescando = uiState.refrescando\r\n        PullToRefreshBox(\r\n            isRefreshing = refrescando,\r\n            onRefresh = onRefrescar,\r\n            modifier = Modifier.weight(1f)\r\n        ) {\r\n            if (uiState.pendingMedications.isEmpty()) {\r\n                ContenidoVacio(uiState)\r\n            } else {\r\n                LazyColumn(\r\n                    verticalArrangement = Arrangement.spacedBy(12.dp),\r\n                    modifier = Modifier.fillMaxWidth()\r\n                ) {\r\n                    items(uiState.pendingMedications) { occurrence ->\r\n                        MedicationCard(\r\n                            occurrence = occurrence,\r\n                            onClick = { onOpenDetail(occurrence.medicationId) },\r\n                            onTaken = { onTaken(occurrence.id) },\r\n                            onPostpone = { onPostpone(occurrence.id) },\r\n                            onOmit = { onOmit(occurrence.id) }\r\n                        )\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun ContenidoVacio(uiState: MedicationUiState) {\r\n    Card(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .padding(vertical = 12.dp),\r\n        shape = RoundedCornerShape(16.dp),\r\n        colors = CardDefaults.cardColors(containerColor = ContenedorVerdeSuave)\r\n    ) {\r\n        Row(\r\n            modifier = Modifier.padding(20.dp),\r\n            verticalAlignment = Alignment.CenterVertically\r\n        ) {\r\n            Icon(\r\n                Icons.Rounded.Check,\r\n                contentDescription = null,\r\n                tint = VerdeTomado,\r\n                modifier = Modifier.size(32.dp)\r\n            )\r\n            Spacer(modifier = Modifier.width(12.dp))\r\n            Column {\r\n                Text(\r\n                    text = \"¡Al día! No tienes medicamentos pendientes por ahora.\",\r\n                    fontSize = 18.sp,\r\n                    color = Color(0xFF2E7D32)\r\n                )\r\n                if (uiState.mensajeEstado != null) {\r\n                    Text(\r\n                        text = uiState.mensajeEstado,\r\n                        fontSize = 13.sp,\r\n                        color = Color(0xFF6B7280),\r\n                        modifier = Modifier.padding(top = 4.dp)\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n    if (uiState.mensajeEstado != null) {\r\n        Text(\r\n            text = uiState.mensajeEstado,\r\n            fontSize = 13.sp,\r\n            color = Color(0xFF6B7280),\r\n            modifier = Modifier.padding(top = 8.dp)\r\n        )\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun MedicationCard(\r\n    occurrence: MedicationOccurrence,\r\n    onClick: () -> Unit,\r\n    onTaken: () -> Unit,\r\n    onPostpone: () -> Unit,\r\n    onOmit: () -> Unit\r\n) {\r\n    Card(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .clickable(onClick = onClick),\r\n        shape = RoundedCornerShape(20.dp),\r\n        colors = CardDefaults.cardColors(containerColor = SuperficieTarjetaTintada)\r\n    ) {\r\n        Column(modifier = Modifier.padding(18.dp)) {\r\n            Row(\r\n                modifier = Modifier.fillMaxWidth(),\r\n                horizontalArrangement = Arrangement.SpaceBetween,\r\n                verticalAlignment = Alignment.CenterVertically\r\n            ) {\r\n                Column {\r\n                    Text(\r\n                        text = occurrence.name,\r\n                        fontSize = 24.sp,\r\n                        fontWeight = FontWeight.Bold,\r\n                        color = TextoPrincipal\r\n                    )\r\n                    Text(\r\n                        text = \"${occurrence.dosage} • ${occurrence.time}\",\r\n                        fontSize = 18.sp,\r\n                        color = TextoSecundario\r\n                    )\r\n                }\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(14.dp))\r\n\r\n            Row(\r\n                modifier = Modifier.fillMaxWidth(),\r\n                horizontalArrangement = Arrangement.spacedBy(8.dp)\r\n            ) {\r\n                Button(\r\n                    onClick = onTaken,\r\n                    modifier = Modifier.weight(1f),\r\n                    colors = ButtonDefaults.buttonColors(containerColor = VerdeBotonTomar),\r\n                    shape = RoundedCornerShape(12.dp)\r\n                ) {\r\n                    Text(\"Tomar\", fontSize = 16.sp, color = Color.White)\r\n                Icon(\r\n                    androidx.compose.material.icons.Icons.Rounded.Check,\r\n                    contentDescription = null,\r\n                    modifier = Modifier.padding(start = 6.dp),\r\n                    tint = Color.White\r\n                )\r\n                }\r\n\r\n                OutlinedButton(\r\n                    onClick = onPostpone,\r\n                    modifier = Modifier.weight(1f),\r\n                    shape = RoundedCornerShape(12.dp)\r\n                ) {\r\n                    Text(\"Posponer\", fontSize = 16.sp, color = Color.DarkGray)\r\n                }\r\n\r\n                OutlinedButton(\r\n                    onClick = onOmit,\r\n                    modifier = Modifier.weight(1f),\r\n                    shape = RoundedCornerShape(12.dp)\r\n                ) {\r\n                    Text(\"Omitir\", fontSize = 16.sp, color = Rojo)\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/screens/medication/MedicationScreen.kt b/app/src/main/java/com/ribani/app/screens/medication/MedicationScreen.kt
+--- a/app/src/main/java/com/ribani/app/screens/medication/MedicationScreen.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/screens/medication/MedicationScreen.kt	(date 1792306252060)
+@@ -8,6 +8,7 @@
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+ import androidx.compose.foundation.layout.width
+@@ -18,6 +19,10 @@
+ import androidx.compose.material.icons.rounded.Check
+ import androidx.compose.material.icons.rounded.History
+ import androidx.compose.material.icons.rounded.Medication
++import androidx.compose.material.icons.rounded.Info
++import androidx.compose.ui.semantics.LiveRegionMode
++import androidx.compose.ui.semantics.liveRegion
++import androidx.compose.ui.semantics.semantics
+ import androidx.compose.material3.Button
+ import androidx.compose.material3.ButtonDefaults
+ import androidx.compose.material3.Card
+@@ -69,18 +74,18 @@
+             verticalAlignment = Alignment.CenterVertically,
+             horizontalArrangement = Arrangement.SpaceBetween
+         ) {
+-            Row(verticalAlignment = Alignment.CenterVertically) {
++            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                 Icon(
+                     Icons.Rounded.Medication,
+                     contentDescription = null,
+-                    modifier = Modifier.size(60.dp),
++                    modifier = Modifier.size(36.dp),
+                     tint = TextoOscuro
+                 )
+                 Text(
+                     text = "Medicamentos",
+-                    fontSize = 32.sp,
++                    fontSize = 26.sp,
+                     fontWeight = FontWeight.Bold,
+-                    modifier = Modifier.padding(start = 16.dp)
++                    modifier = Modifier.padding(start = 12.dp).weight(1f)
+                 )
+             }
+             IconButton(onClick = onOpenHistory) {
+@@ -101,6 +106,7 @@
+         )
+ 
+         // Pull-to-refresh: deslizar hacia abajo recarga del backend
++        if (!uiState.cargado && !uiState.refrescando) OutlinedButton(onClick = onRefrescar) { Text("Actualizar medicamentos") }
+         // (igual que salir y entrar, sin salir de la pantalla).
+         val refrescando = uiState.refrescando
+         PullToRefreshBox(
+@@ -144,7 +150,7 @@
+             verticalAlignment = Alignment.CenterVertically
+         ) {
+             Icon(
+-                Icons.Rounded.Check,
++                if (uiState.cargado && uiState.mensajeEstado == null) Icons.Rounded.Check else Icons.Rounded.Info,
+                 contentDescription = null,
+                 tint = VerdeTomado,
+                 modifier = Modifier.size(32.dp)
+@@ -152,7 +158,7 @@
+             Spacer(modifier = Modifier.width(12.dp))
+             Column {
+                 Text(
+-                    text = "¡Al día! No tienes medicamentos pendientes por ahora.",
++                    text = if (uiState.cargado && uiState.mensajeEstado == null) "No tienes medicamentos pendientes por ahora." else "Todavía no se han verificado tus medicamentos.",
+                     fontSize = 18.sp,
+                     color = Color(0xFF2E7D32)
+                 )
+@@ -161,7 +167,7 @@
+                         text = uiState.mensajeEstado,
+                         fontSize = 13.sp,
+                         color = Color(0xFF6B7280),
+-                        modifier = Modifier.padding(top = 4.dp)
++                        modifier = Modifier.padding(top = 4.dp).semantics { liveRegion = LiveRegionMode.Polite }
+                     )
+                 }
+             }
+@@ -236,10 +242,11 @@
+ 
+                 OutlinedButton(
+                     onClick = onPostpone,
++                    enabled = occurrence.status != com.ribani.app.data.repository.MedicationStatus.POSTPONED,
+                     modifier = Modifier.weight(1f),
+                     shape = RoundedCornerShape(12.dp)
+                 ) {
+-                    Text("Posponer", fontSize = 16.sp, color = Color.DarkGray)
++                    Text(if (occurrence.status == com.ribani.app.data.repository.MedicationStatus.POSTPONED) "Pospuesta" else "Posponer", fontSize = 16.sp, color = Color.DarkGray)
+                 }
+ 
+                 OutlinedButton(
+Index: app/src/main/java/com/ribani/app/ui/theme/Color.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ribani.app.ui.theme\r\n\r\nimport androidx.compose.ui.graphics.Color\r\n\r\n// ── RIBANI: tokens de color centralizados (light mode) ─────────────────────\r\n// Se usan desde todas las pantallas para evitar hex codificados por pantalla.\r\n\r\n// Primario / marca\r\nval VerdeRIBANI = Color(0xFF006B3C)\r\nval VerdeClaro = Color(0xFF63B52A)\r\nval VerdeEstadoOk = Color(0xFF34A853)\r\nval ContenedorVerdeSuave = Color(0xFFE8F5E9)\r\n\r\n// Peligro / alerta\r\nval Rojo = Color(0xFFC62828)\r\nval RojoBoton = Color(0xFFEF2020)\r\nval ContenedorRojoSuave = Color(0xFFFDECEA)\r\n\r\n// Estados de medicación\r\nval VerdeBotonTomar = Color(0xFF4CAF50)\r\nval NaranjaPostpuesto = Color(0xFFEF6C00)\r\nval VerdeTomado = Color(0xFF2E7D32)\r\n\r\n// Superficies\r\nval FondoApp = Color(0xFFFAFAF8)\r\nval SuperficieTarjeta = Color(0xFFF3F2F7)\r\nval SuperficieTarjetaTintada = Color(0xFFECECFD)\r\nval Separador = Color(0xFFE0DFE3)\r\nval ContenedorCircularIcono = Color(0xFFD0B8FF)\r\n\r\n// Texto\r\nval TextoPrincipal = Color(0xFF151515)\r\nval TextoOscuro = Color(0xFF211F24)\r\nval TextoSecundario = Color(0xFF444444)\r\nval TextoAjeno = Color(0xFF6B7280)\r\nval TextoOscuroSecundario = Color(0xFF4B5563)\r\nval TextoEnTarjetasGris = Color(0xFF374151)\r\nval TextoDatos = Color(0xFF111827)\r\nval TextoNeutro = Color(0xFF616161)\r\n\r\n// Barra de navegación\r\nval FondoBarraNavegacion = Color(0xFFECECFD)\r\nval IconoActivoBarra = VerdeRIBANI\r\nval IconoInactivoBarra = Color(0xFF5F5D63)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ribani/app/ui/theme/Color.kt b/app/src/main/java/com/ribani/app/ui/theme/Color.kt
+--- a/app/src/main/java/com/ribani/app/ui/theme/Color.kt	(revision bb755dbe0da4fde8ea4f8264af3623fcd8687c8e)
++++ b/app/src/main/java/com/ribani/app/ui/theme/Color.kt	(date 1792306481107)
+@@ -17,7 +17,7 @@
+ val ContenedorRojoSuave = Color(0xFFFDECEA)
+ 
+ // Estados de medicación
+-val VerdeBotonTomar = Color(0xFF4CAF50)
++val VerdeBotonTomar = VerdeRIBANI
+ val NaranjaPostpuesto = Color(0xFFEF6C00)
+ val VerdeTomado = Color(0xFF2E7D32)
+ 
