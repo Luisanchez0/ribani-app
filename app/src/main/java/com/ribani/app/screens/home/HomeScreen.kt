@@ -18,8 +18,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.HealthAndSafety
 import androidx.compose.material.icons.rounded.Sos
 import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ribani.app.ui.theme.ContenedorRojoSuave
 import com.ribani.app.ui.theme.ContenedorVerdeSuave
 import com.ribani.app.ui.theme.Rojo
 import com.ribani.app.ui.theme.TextoPrincipal
@@ -41,16 +45,23 @@ import com.ribani.app.ui.theme.VerdeClaro
 import com.ribani.app.ui.theme.VerdeEstadoOk
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.delay
 
 
 @Composable
 fun HomeScreen(
     onSosClick: () -> Unit,
-    isMonitoring: Boolean
+    /** Atenúa el modal de bloqueo: lleva a la pantalla de Invitaciones
+     *  para vincularse con un FAMILIAR_ENCARGADO responsable. */
+    onOpenInvitaciones: () -> Unit = {},
+    isMonitoring: Boolean,
+    /** null = sin respuesta del backend (offline/cargando);
+     *  false = el adulto no tiene un FAMILIAR_ENCARGADO con vínculo ACTIVA. */
+    proteccionActiva: Boolean? = null
 ) {
-    val currentTime = remember { mutableStateOf(LocalTime.now()) }
+    val sinProteccion = proteccionActiva == false
+    val currentTime = remember { mutableStateOf(LocalTime.now()) }  
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -59,10 +70,14 @@ fun HomeScreen(
         }
     }
 
+    var mostrarModalBloqueo by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(VerdeClaro.copy(alpha = 0.12f))
+            // Fondo rojizo suave cuando el adulto mayor aún no tiene un
+            // FAMILIAR_ENCARGADO con vínculo ACTIVA (protección no configurada).
+            .background(if (sinProteccion) Rojo.copy(alpha = 0.08f) else VerdeClaro.copy(alpha = 0.12f))
     ) {
 
         Column(
@@ -104,7 +119,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(ContenedorVerdeSuave)
+                    .background(if (sinProteccion) ContenedorRojoSuave else ContenedorVerdeSuave)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Box(
@@ -115,10 +130,10 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = if (isMonitoring) {
-                        "Sistema activado y monitoreando"
-                    } else {
-                        "Sensores no disponibles"
+                    text = when {
+                        sinProteccion -> "Sistema desactivado • Sin familiar encargado"
+                        isMonitoring -> "Sistema activado y monitoreando"
+                        else -> "Sensores no disponibles"
                     },
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
@@ -140,7 +155,7 @@ fun HomeScreen(
 
                 Text(
                     text = currentTime.value.format(
-                        DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+                        DateTimeFormatter.ofPattern("hh:mm a", LocalConfiguration.current.locales[0])
                     ),
                     fontSize = 42.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -166,7 +181,11 @@ fun HomeScreen(
                 )
 
                 Text(
-                    text = if (isMonitoring) "No hay alertas recientes" else "Revisa la conexión de sensores",
+                    text = when {
+                        sinProteccion -> "No tienes un familiar encargado vinculado"
+                        isMonitoring -> "No hay alertas recientes"
+                        else -> "Revisa la conexión de sensores"
+                    },
                     fontSize = 18.sp,
                     color = Color(0xFF697077),
                     modifier = Modifier.padding(top = 6.dp)
@@ -176,7 +195,16 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onSosClick,
+                onClick = {
+                    // Sin vínculo con un FAMILIAR_ENCARGADO la función SOS
+                    // está bloqueada: se muestra un modal explicativo en
+                    // lugar de enviar la alerta.
+                    if (sinProteccion) {
+                        mostrarModalBloqueo = true
+                    } else {
+                        onSosClick()
+                    }
+                },
                 modifier = Modifier.size(140.dp),
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
@@ -207,6 +235,62 @@ fun HomeScreen(
                 fontSize = 14.sp,
                 color = Color(0xFF697077)
             )
+
+            if (sinProteccion) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Función SOS bloqueada", 
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Rojo
+                )
+            }
         }
+    }
+
+    // Modal: el botón SOS está bloqueado mientras el adulto mayor no esté
+    // vinculado (vínculo ACTIVA) con un FAMILIAR_ENCARGADO responsable.
+    if (mostrarModalBloqueo) {
+        AlertDialog(
+            onDismissRequest = { mostrarModalBloqueo = false },
+            title = {
+                Text(
+                    text = "Función bloqueada",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "El botón SOS está bloqueado porque aún no tienes un " +
+                        "familiar responsable vinculado. Activa la protección " +
+                        "conectándote con tu FAMILIAR_ENCARGADO para poder " +
+                        "usar esta función.",
+                    fontSize = 18.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { mostrarModalBloqueo = false }) {
+                    Text(
+                        text = "Entendido",
+                        fontSize = 18.sp,
+                        color = Rojo
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    mostrarModalBloqueo = false
+                    onOpenInvitaciones()
+                }) {
+                    Text(
+                        text = "Vincular mi familiar responsable",
+                        fontSize = 18.sp,
+                        color = VerdeClaro
+                    )
+                }
+            }
+        )
     }
 }

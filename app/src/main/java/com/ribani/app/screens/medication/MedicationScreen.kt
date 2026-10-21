@@ -34,15 +34,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ribani.app.ui.theme.ContenedorVerdeSuave
 import com.ribani.app.ui.theme.TextoOscuro
 import com.ribani.app.ui.theme.TextoPrincipal
 import com.ribani.app.ui.theme.TextoSecundario
 import com.ribani.app.ui.theme.TextoAjeno
 import com.ribani.app.ui.theme.SuperficieTarjetaTintada
 import com.ribani.app.ui.theme.VerdeBotonTomar
-import com.ribani.app.ui.theme.VerdeTomado
 import com.ribani.app.ui.theme.Rojo
+import com.ribani.app.data.repository.MedicationStatus
 import com.ribani.app.data.repository.MedicationOccurrence
 import com.ribani.app.data.repository.MedicationUiState
 
@@ -132,49 +131,14 @@ fun MedicationScreen(
 
 @Composable
 private fun ContenidoVacio(uiState: MedicationUiState) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = ContenedorVerdeSuave)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Rounded.Check,
-                contentDescription = null,
-                tint = VerdeTomado,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = "¡Al día! No tienes medicamentos pendientes por ahora.",
-                    fontSize = 18.sp,
-                    color = Color(0xFF2E7D32)
-                )
-                if (uiState.mensajeEstado != null) {
-                    Text(
-                        text = uiState.mensajeEstado,
-                        fontSize = 13.sp,
-                        color = Color(0xFF6B7280),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-        }
-    }
-    if (uiState.mensajeEstado != null) {
-        Text(
-            text = uiState.mensajeEstado,
-            fontSize = 13.sp,
-            color = Color(0xFF6B7280),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
+    com.ribani.app.ui.components.ContenidoVacio(
+        mensaje = if (uiState.cargado) {
+            "¡Al día! No tienes medicamentos pendientes por hoy."
+        } else {
+            "Aún no hay medicamentos para mostrar."
+        },
+        mensajeEstado = uiState.mensajeEstado
+    )
 }
 
 @Composable
@@ -236,6 +200,7 @@ private fun MedicationCard(
 
                 OutlinedButton(
                     onClick = onPostpone,
+                    enabled = occurrence.status != MedicationStatus.POSTPONED,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {

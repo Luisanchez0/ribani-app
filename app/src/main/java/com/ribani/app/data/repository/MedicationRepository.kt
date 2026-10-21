@@ -68,8 +68,8 @@ data class MedicationUiState(
  *   la hora real tomada_en si existe).
  * - "Mis medicamentos": derivado de las tomas (el alta/edición de
  *   medicamentos la hace el familiar desde su panel web).
- * - Sin sesión o sin conexión: se conservan los datos demo como
- *   fallback de UI; las acciones no pegan al backend sin sesión.
+ * - Sin sesión o sin conexión: estado vacío con un mensaje de estado
+ *   (SIN datos de demostración); las acciones no pegan al backend sin sesión.
  */
 object MedicationRepository {
 
@@ -77,22 +77,8 @@ object MedicationRepository {
     private val formatoHora = DateTimeFormatter.ofPattern("hh:mm a")
     private val formatoDiaHora = DateTimeFormatter.ofPattern("'Ayer', hh:mm a'.'")
 
-    /** Datos demo de respaldo (offline/sin sesión) para no dejar vacío. */
-    private val demoState = MedicationUiState(
-        pendingMedications = listOf(
-            MedicationOccurrence("occ_demo_1", "med_demo_1", "Paracetamol", "500 mg", "08:00 AM"),
-            MedicationOccurrence("occ_demo_2", "med_demo_2", "Enalapril", "10 mg", "02:00 PM")
-        ),
-        medications = listOf(
-            Medication("med_demo_1", "Paracetamol", "500 mg", "Cada 8 horas", "Tomar con abundante agua"),
-            Medication("med_demo_2", "Enalapril", "10 mg", "Cada 12 horas", "Tomar después de las comidas")
-        ),
-        history = emptyList(),
-        cargado = false,
-        mensajeEstado = "Sin conexión con el servidor: datos de demostración."
-    )
-
-    private val _uiState = MutableStateFlow(demoState)
+    /** Estado inicial/limpio: sin datos (NO hay medicamentos de demostración). */
+    private val _uiState = MutableStateFlow(MedicationUiState())
     val uiState: StateFlow<MedicationUiState> = _uiState.asStateFlow()
 
     fun initialize(context: Context) {
@@ -100,7 +86,9 @@ object MedicationRepository {
             val manager = SessionManager(context)
 
             if (!manager.isLoggedIn.first()) {
-                _uiState.value = demoState
+                _uiState.value = MedicationUiState(
+                    mensajeEstado = "Inicia sesión para ver tus medicamentos."
+                )
                 return@launch
             }
 
@@ -108,12 +96,24 @@ object MedicationRepository {
         }
     }
 
+    /**
+     * Limpieza al cerrar sesión o cambiar de usuario: vacía el estado
+     * y cancela las alarmas de la sesión anterior. Invocado desde
+     * Configuración (Cerrar Sesión) y cuando la sesión quedó invalidada.
+     */
+    fun limpiarSesion(context: Context) {
+        _uiState.value = MedicationUiState()
+        MedicationAlarmScheduler.cancelarTodas(context)
+    }
+
     /** Recarga del backend: pendientes de hoy + historial reciente. */
     suspend fun refrescar(context: Context) {
         val manager = SessionManager(context)
 
         if (!manager.isLoggedIn.first()) {
-            _uiState.value = demoState
+            _uiState.value = MedicationUiState(
+                mensajeEstado = "Inicia sesión para ver tus medicamentos."
+            )
             return
         }
 
@@ -205,12 +205,18 @@ object MedicationRepository {
             // las tomas pendientes de hoy ( MedicationAlarmScheduler).
             MedicationAlarmScheduler.programarPendientes(context)
         } catch (e: Exception) {
-            // Sin red/401/etc.: conservar lo que haya (o demo) y avisar.
+            // Sin red/401/etc.: se conserva lo ya cargado (si existe) y se avisa;
+            // si nunca cargó, queda el estado vacío con el mensaje (no demo).
             _uiState.value =
-                (_uiState.value.takeIf { it.cargado } ?: demoState)
-                    .copy(
+                _uiState.value
+                    .takeIf { it.cargado }
+                    ?.copy(
                         refrescando = false,
                         mensajeEstado = "No se pudo actualizar: ${e.message ?: "sin conexión"}"
+                    )
+                    ?: MedicationUiState(
+                        mensajeEstado =
+                            "No se pudo actualizar: ${e.message ?: "sin conexión"}"
                     )
         }
     }
@@ -226,22 +232,26 @@ object MedicationRepository {
     }
 
     /**
-     * Posponer: el backend no define estado POSTPONED (solo TOMADA/OMITIDA),
-     * igual que en la web la opción disponible es mover la toma.
-     * Aquí se queda local (badge) sin tocar el backend; persistencia real
-     * de "posponer" requeriría endpoint (Pendiente en servidor).
+     * Posponer: POST /tomas/{id}/posponer — mueve la toma una vez,
+     * diez minutos, dentro de la ventana original; el server la deja
+     * en estado POSPUESTA (sigue dentro del grupo de pendientes).
+     * El estado persiste en el backend, igual que tomar/omitir.
      */
-    fun postpone(occurrenceId: String) {
-        val current = _uiState.value
-        _uiState.value = current.copy(
-            pendingMedications = current.pendingMedications.map {
-                if (it.id == occurrenceId) {
-                    it.copy(status = MedicationStatus.POSTPONED)
-                } else {
-                    it
-                }
+    fun postpone(context: Context, occurrenceId: String) {
+        // Solo si la lista es del backend (id UUID real, no demo).
+        if (!_uiState.value.cargado) return
+
+        scope.launch {
+            try {
+                ApiClient.medicamentosService.posponer(occurrenceId)
+                // Re-sincroniza con el backend (estado en server es la verdad).
+                refrescar(context)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    mensajeEstado = "No se pudo posponer: ${e.message ?: "intenta de nuevo"}"
+                )
             }
-        )
+        }
     }
 
     private fun actualizar(
@@ -283,7 +293,13 @@ object MedicationRepository {
             dosage = medicamento?.let { "${it.dosis} ${it.unidad_dosis}" }
                 ?: dosageDe(this),
             time = programadaParaLocal().format(formatoHora),
-            status = MedicationStatus.PENDING,
+            // GET /tomas?estado=PENDIENTE incluye también POSPUESTA
+            // (pospuesta: sigue pendiente de hoy, badge "pospuesto").
+            status = if (estado == "POSPUESTA") {
+                MedicationStatus.POSTPONED
+            } else {
+                MedicationStatus.PENDING
+            },
             programadaIso = programada_para,
             instrucciones = medicamento?.instrucciones,
         )
@@ -328,4 +344,25 @@ object MedicationRepository {
         toma.dosis_tomada?.let { dosis ->
             "${dosis.toString().trimEnd('0', '.')} mg"
         } ?: "Dosis según indicación"
+
+    /**
+     * Registra el estado de la toma (TOMADA u OMITIDA) desde la alarma full-screen,
+     * actualiza el backend y refresca el repositorio local.
+     */
+    suspend fun registrarDesdeAlarma(
+        context: Context,
+        tomaId: String,
+        estado: String,
+    ): Boolean {
+        return try {
+            ApiClient.medicamentosService.actualizarToma(
+                tomaId,
+                ActualizarTomaRequest(estado = estado)
+            )
+            refrescar(context)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
 }

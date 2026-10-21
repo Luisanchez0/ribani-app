@@ -20,12 +20,15 @@ import com.ribani.app.FallAlertActivity
 import com.ribani.app.R
 import com.ribani.app.data.local.SessionManager
 import com.ribani.app.data.repository.AlertasRepository
+import com.ribani.app.data.repository.DispositivosRepository
 import com.ribani.app.data.repository.UbicacionesEscucha
 import com.ribani.app.data.repository.UbicacionesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -47,6 +50,13 @@ class RibaniMonitoringService : Service() {
         }
         startForeground(NOTIFICATION_ID, monitoringNotification())
         sensorManager.start()
+        // Registro del teléfono y latido periódico para el panel web (Dispositivos).
+        serviceScope.launch {
+            while (isActive) {
+                DispositivosRepository.sincronizar(applicationContext)
+                delay(INTERVALO_LATIDO_MS)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -184,5 +194,6 @@ class RibaniMonitoringService : Service() {
         const val NOTIFICATION_ID = 100
         const val ALERT_NOTIFICATION_ID = 101
         const val FALL_ALERT_REQUEST_CODE = 102
+        const val INTERVALO_LATIDO_MS = 5 * 60 * 1000L
     }
 }

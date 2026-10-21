@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ribani.app.data.repository.MedicationStatus
 import com.ribani.app.data.repository.MedicationUiState
 
 @Composable
@@ -161,7 +162,7 @@ fun MedicationDetailScreen(
                             Button(
                                 onClick = { onTaken(pendingOccurrence.id) },
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                colors = ButtonDefaults.buttonColors(containerColor = com.ribani.app.ui.theme.VerdeBotonTomar),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Tomar", fontSize = 16.sp, color = Color.White)
@@ -169,6 +170,7 @@ fun MedicationDetailScreen(
 
                             OutlinedButton(
                                 onClick = { onPostpone(pendingOccurrence.id) },
+                                enabled = pendingOccurrence.status != MedicationStatus.POSTPONED,
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
@@ -180,12 +182,21 @@ fun MedicationDetailScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Omitir", fontSize = 16.sp, color = Color(0xFFC62828))
+                                Text("Omitir", fontSize = 16.sp, color = com.ribani.app.ui.theme.Rojo)
                             }
                         }
                     }
                 }
             }
+        } else {
+            Text(
+                text = "Medicamento no encontrado entre tus datos.",
+                fontSize = 18.sp,
+                color = com.ribani.app.ui.theme.TextoSecundario,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp)
+            )
         }
     }
 }

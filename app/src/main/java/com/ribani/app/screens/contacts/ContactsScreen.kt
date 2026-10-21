@@ -99,12 +99,9 @@ fun ContactsScreen() {
                 )
             }
             contactos!!.isEmpty() -> {
-                Text(
-                    "Aún no tienes contactos de emergencia.\nTu familiar puede agregarlos desde la app web.",
-                    fontSize = 22.sp,
-                    color = TextoNeutro,
-                    lineHeight = 30.sp,
-                    modifier = Modifier.padding(vertical = 20.dp)
+                com.ribani.app.ui.components.ContenidoVacio(
+                    mensaje = "Aún no tienes contactos de emergencia.",
+                    mensajeEstado = "Tu familiar puede agregarlos desde la app web."
                 )
             }
             else -> {

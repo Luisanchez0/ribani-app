@@ -248,7 +248,13 @@ fun LocationScreen() {
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
                     properties = MapProperties(
-                        isMyLocationEnabled = true,
+                        // La capa "mi ubicación" de Maps SDK lanza
+                        // SecurityException si se activa sin permiso
+                        // concedido: solo se activa con hasPermission.
+                        // (Causa del cierre tras reinstalar: el mapa se
+                        // renderizaba con isMyLocationEnabled = true
+                        // mientras el diálogo de permiso seguía visible.)
+                        isMyLocationEnabled = hasPermission,
                         mapType = MapType.NORMAL
                     ),
                     uiSettings = MapUiSettings(
@@ -259,7 +265,9 @@ fun LocationScreen() {
                     )
                 ) {
                     Marker(
-                        state = MarkerState(position = mapLocation),
+                        state = remember(mapLocation) {
+                            MarkerState(position = mapLocation)
+                        },
                         title = "Tu ubicación"
                     )
                 }

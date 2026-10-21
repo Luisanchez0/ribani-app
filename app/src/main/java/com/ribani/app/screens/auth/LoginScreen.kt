@@ -54,6 +54,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onTwoFactorRequired: (challengeToken: String) -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
+    onNavigateToRecuperar: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -139,7 +140,7 @@ fun LoginScreen(
             singleLine = true,
             isError = emailError != null,
             supportingText = if (emailError != null) {
-                { Text(emailError, fontSize = 14.sp, color = Color(0xFFEF2020)) }
+                { Text(emailError, fontSize = 14.sp, color = com.ribani.app.ui.theme.RojoBoton) }
             } else {
                 null
             },
@@ -177,7 +178,7 @@ fun LoginScreen(
             Text(
                 text = message,
                 fontSize = 15.sp,
-                color = Color(0xFFEF2020),
+                color = com.ribani.app.ui.theme.RojoBoton,
                 modifier = Modifier.align(Alignment.Start)
             )
         }
@@ -235,6 +236,14 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
+        TextButton(onClick = onNavigateToRecuperar) {
+            Text(
+                text = "¿Olvidaste tu contraseña?",
+                fontSize = 15.sp,
+                color = Color(0xFF444444)
+            )
+        }
 
         TextButton(onClick = onNavigateToRegister) {
             Text(
