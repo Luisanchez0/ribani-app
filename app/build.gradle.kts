@@ -17,6 +17,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Base URL del backend, en tiempo de build (ya no en código).
+        // Dev: por defecto, la LAN del PC que corre el server.
+        // Producción (release o cualquier variante):
+        //   ./gradlew assembleRelease -PribaniBaseUrl=https://<dominio-del-backend>/
+        val baseUrl = providers
+            .gradleProperty("ribaniBaseUrl")
+            .orElse("http://192.168.100.192:3000/")
+        buildConfigField("String", "BASE_URL", "\"${baseUrl.get()}\"")
     }
 
     buildTypes {
@@ -32,6 +41,9 @@ android {
     }
     buildFeatures {
         compose = true
+        // Habilita la generación de BuildConfig (AGP 9 lo deshabilita por
+        // defecto); BASE_URL se define arriba en defaultConfig.
+        buildConfig = true
     }
 }
 

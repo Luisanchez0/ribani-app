@@ -27,10 +27,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ribani.app.data.local.SessionManager
+import com.ribani.app.data.repository.AlertasRepository
 import com.ribani.app.data.repository.AuthRepository
+import com.ribani.app.data.repository.AjustesRepository
 import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.data.repository.SessionValidation
 import com.ribani.app.screens.auth.LoginScreen
+import com.ribani.app.screens.auth.RecuperarPasswordScreen
 import com.ribani.app.screens.auth.TwoFactorLoginScreen
 import com.ribani.app.screens.auth.RegisterScreen
 import com.ribani.app.screens.contacts.ContactsScreen
@@ -51,6 +54,8 @@ const val LOGIN_ROUTE = "login?cuentaCreada={cuentaCreada}"
 const val REGISTER_ROUTE = "register"
 // Se llega tras un login que respondió twoFactorRequired (2FA activado)
 const val TWO_FACTOR_LOGIN_ROUTE = "login/twofactor/{challengeToken}"
+// Recuperación de contraseña (código por correo)
+const val RECUPERAR_PASSWORD_ROUTE = "login/recuperar"
 
 @Composable
 fun AppNavigation(
@@ -63,6 +68,7 @@ fun AppNavigation(
     val scope = rememberCoroutineScope()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val medicationUiState = MedicationRepository.uiState.collectAsState().value
+    val ajustesUiState = AjustesRepository.uiState.collectAsState().value
 
     // Verificación de sesión guardada antes de decidir la pantalla inicial
     var sessionChecked by remember { mutableStateOf(false) }
@@ -86,6 +92,11 @@ fun AppNavigation(
                 is SessionValidation.Valid -> isLoggedIn = true
                 is SessionValidation.Invalid -> {
                     sessionManager.clear()
+                    // Sesión revocada: estado vacío (sin datos demo) y
+                    // alarmas de la sesión anterior canceladas.
+                    MedicationRepository.limpiarSesion(context)
+                    // Resetea también el estado de Ajustes/protección.
+                    AjustesRepository.limpiar()
                     isLoggedIn = false
                 }
                 is SessionValidation.Offline -> isLoggedIn = true
@@ -114,9 +125,12 @@ fun AppNavigation(
 
     // Medicamentos: carga datos reales del backend al abrir la pestañas
     // (GET /tomas del dia + historial), como MedicaScreen de la web.
+    // Ajustes: consulta /auth/me y /familiares/mis-familiares para saber si
+    // el adulto tiene un FAMILIAR_ENCARGADO con vínculo ACTIVA (protección).
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             MedicationRepository.initialize(context)
+            AjustesRepository.cargar(context)
         }
     }
 
@@ -201,6 +215,11 @@ fun AppNavigation(
                         navController.navigate(REGISTER_ROUTE) {
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToRecuperar = {
+                        navController.navigate(RECUPERAR_PASSWORD_ROUTE) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -227,6 +246,12 @@ fun AppNavigation(
                 )
             }
 
+            composable(route = RECUPERAR_PASSWORD_ROUTE) {
+                RecuperarPasswordScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable(route = REGISTER_ROUTE) {
                 RegisterScreen(
                     onRegisterSuccess = {
@@ -247,7 +272,17 @@ fun AppNavigation(
                             launchSingleTop = true
                         }
                     },
-                    isMonitoring = true
+                    // Desde el modal de bloqueo del SOS: lleva a Invitaciones
+                    // para vincularse con un FAMILIAR_ENCARGADO responsable.
+                    onOpenInvitaciones = {
+                        navController.navigate("invitaciones") {
+                            launchSingleTop = true
+                        }
+                    },
+                    isMonitoring = ajustesUiState.proteccionActiva != false,
+                    // null = sin aún respuesta del backend / offline:
+                    // se muestra el estado por defecto (activado).
+                    proteccionActiva = ajustesUiState.proteccionActiva
                 )
             }
 
@@ -259,7 +294,9 @@ fun AppNavigation(
                     onTaken = { occurrenceId ->
                         MedicationRepository.markTaken(context, occurrenceId)
                     },
-                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },
+                    onPostpone = { occurrenceId ->
+                            MedicationRepository.postpone(context, occurrenceId)
+                        },
                     onOmit = { occurrenceId ->
                         MedicationRepository.markOmitted(context, occurrenceId)
                     },
@@ -279,7 +316,9 @@ fun AppNavigation(
                     onTaken = { occurrenceId ->
                         MedicationRepository.markTaken(context, occurrenceId)
                     },
-                    onPostpone = { occurrenceId -> MedicationRepository.postpone(occurrenceId) },
+                    onPostpone = { occurrenceId ->
+                            MedicationRepository.postpone(context, occurrenceId)
+                        },
                     onOmit = { occurrenceId ->
                         MedicationRepository.markOmitted(context, occurrenceId)
                     }
@@ -306,6 +345,12 @@ fun AppNavigation(
                     onLogout = {
                         scope.launch {
                             AuthRepository(SessionManager(context)).logout()
+                            // Limpia medicamentos e historial (incluido el
+                            // estado local de aplazamientos) y cancela las
+                            // alarmas de la sesión anterior.
+                            MedicationRepository.limpiarSesion(context)
+                            // Resetea el estado de Ajustes/protección.
+                            AjustesRepository.limpiar()
                             navController.navigate("login") {
                                 popUpTo(navController.graph.startDestinationId) {
                                     inclusive = true
@@ -339,9 +384,22 @@ fun AppNavigation(
                         navController.popBackStack()
                     },
                     onNeedHelp = {
-                        // La alerta CAIDA ya quedó abierta desde la detección;
-                        // el SOS directo se envía desde FallAlertActivity.
-                        // Pendiente: enviar SOS también en la navegación interna.
+                        // "¡NECESITO AYUDA!" desde la navegación interna:
+                        // igual que en FallAlertActivity, escala la CAIDA
+                        // abierta a EN_ATENCION y crea una SOS explícita
+                        // (POST /alertas tipo SOS) para el panel del familiar.
+                        // Es fire-and-forget: si el backend no responde, la
+                        // alerta CAIDA sigue abierta y al familiar ya le llegó.
+                        scope.launch {
+                            AlertasRepository.escalarAlerta()
+                            AlertasRepository.enviarAlerta(
+                                context = context,
+                                tipo = "SOS",
+                                titulo = "El adulto mayor pide ayuda",
+                                descripcion =
+                                    "Presionó ¡NECESITO AYUDA! tras una alerta de posible caída.",
+                            )
+                        }
                         navController.popBackStack()
                     },
                     onTiempoAgotado = {

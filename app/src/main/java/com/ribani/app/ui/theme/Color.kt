@@ -13,12 +13,17 @@ val ContenedorVerdeSuave = Color(0xFFE8F5E9)
 
 // Peligro / alerta
 val Rojo = Color(0xFFC62828)
-val RojoBoton = Color(0xFFEF2020)
+// Contraste WCAG 4.98:1 con texto blanco (antes #EF2020 = 4.29:1,
+// insuficiente como texto de error de 14sp).
+val RojoBoton = Color(0xFFD32F2F)
 val ContenedorRojoSuave = Color(0xFFFDECEA)
 
 // Estados de medicación
-val VerdeBotonTomar = Color(0xFF4CAF50)
-val NaranjaPostpuesto = Color(0xFFEF6C00)
+// Contraste WCAG ≥4.5:1 con texto blanco (verificado):
+// VerdeBotonTomar 5.16:1, NaranjaPostpuesto 5.02:1 (y 4.61:1 sobre tarjeta
+// F5F5F5), VerdeTomado 5.13:1.
+val VerdeBotonTomar = Color(0xFF287D30)
+val NaranjaPostpuesto = Color(0xFFB45309)
 val VerdeTomado = Color(0xFF2E7D32)
 
 // Superficies
