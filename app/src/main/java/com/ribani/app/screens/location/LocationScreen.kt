@@ -312,41 +312,6 @@ fun LocationScreen() {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (hasPermission) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "Latitud",
-                                fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
-                            )
-                            Text(
-                                text = currentLocation?.let { String.format(Locale.getDefault(), "%.6f", it.latitude) } ?: "--",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF111827)
-                            )
-                        }
-
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "Longitud",
-                                fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
-                            )
-                            Text(
-                                text = currentLocation?.let { String.format(Locale.getDefault(), "%.6f", it.longitude) } ?: "--",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF111827)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
                     Text(
                         text = lastUpdateMessage,
                         fontSize = 13.sp,

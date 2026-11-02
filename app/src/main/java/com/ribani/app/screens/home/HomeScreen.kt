@@ -1,6 +1,8 @@
 package com.ribani.app.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ribani.app.ui.theme.ContenedorRojoSuave
@@ -55,12 +58,18 @@ fun HomeScreen(
     /** Atenúa el modal de bloqueo: lleva a la pantalla de Invitaciones
      *  para vincularse con un FAMILIAR_ENCARGADO responsable. */
     onOpenInvitaciones: () -> Unit = {},
-    isMonitoring: Boolean,
-    /** null = sin respuesta del backend (offline/cargando);
-     *  false = el adulto no tiene un FAMILIAR_ENCARGADO con vínculo ACTIVA. */
-    proteccionActiva: Boolean? = null
+    /** Lo que se afirma al adulto; ver [calcularEstadoInicio]. */
+    estado: EstadoInicio,
+    /** true solo si el adulto no tiene un FAMILIAR_ENCARGADO con vínculo ACTIVA. */
+    sosBloqueado: Boolean = false
 ) {
-    val sinProteccion = proteccionActiva == false
+    val sinProteccion = sosBloqueado
+    val colorEstado = when (estado.nivel) {
+        NivelEstado.Ok -> VerdeEstadoOk
+        NivelEstado.Comprobando -> Color(0xFF697077)
+        NivelEstado.Aviso -> Color(0xFFB26A00)
+        NivelEstado.Problema -> Rojo
+    }
     val currentTime = remember { mutableStateOf(LocalTime.now()) }  
 
     LaunchedEffect(Unit) {
@@ -84,6 +93,8 @@ fun HomeScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                // Con fuente grande el SOS no debe quedar fuera de la pantalla.
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -126,15 +137,11 @@ fun HomeScreen(
                     modifier = Modifier
                         .size(14.dp)
                         .clip(CircleShape)
-                        .background(if (isMonitoring) VerdeEstadoOk else Rojo)
+                        .background(colorEstado)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = when {
-                        sinProteccion -> "Sistema desactivado • Sin familiar encargado"
-                        isMonitoring -> "Sistema activado y monitoreando"
-                        else -> "Sensores no disponibles"
-                    },
+                    text = estado.chip,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = TextoPrincipal
@@ -166,29 +173,26 @@ fun HomeScreen(
 
                 Icon(
                     imageVector = Icons.Rounded.Verified,
-                    contentDescription = if (isMonitoring) "Todo está bien" else "Atención requerida",
+                    contentDescription = estado.titulo,
                     modifier = Modifier.size(84.dp),
-                    tint = if (isMonitoring) VerdeEstadoOk else Rojo
+                    tint = colorEstado
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (isMonitoring) "Todo está bien" else "Monitoreo inactivo",
+                    text = estado.titulo,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextoPrincipal
                 )
 
                 Text(
-                    text = when {
-                        sinProteccion -> "No tienes un familiar encargado vinculado"
-                        isMonitoring -> "No hay alertas recientes"
-                        else -> "Revisa la conexión de sensores"
-                    },
+                    text = estado.detalle,
                     fontSize = 18.sp,
                     color = Color(0xFF697077),
-                    modifier = Modifier.padding(top = 6.dp)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp)
                 )
             }
 

@@ -7,20 +7,19 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import com.ribani.app.FallAlertActivity
 import com.ribani.app.R
 import com.ribani.app.data.local.SessionManager
 import com.ribani.app.data.repository.AlertasRepository
 import com.ribani.app.data.repository.DispositivosRepository
+import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.data.repository.UbicacionesEscucha
 import com.ribani.app.data.repository.UbicacionesRepository
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +28,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -48,8 +46,13 @@ class RibaniMonitoringService : Service() {
         sensorManager = RibaniSensorManager(applicationContext) {
             showFallAlert()
         }
-        startForeground(NOTIFICATION_ID, monitoringNotification())
+        iniciarPrimerPlano()
         sensorManager.start()
+        MonitoreoEstado.marcar(
+            activo = true,
+            sensoresDisponibles = sensorManager.accelerometerAvailable &&
+                sensorManager.gyroscopeAvailable,
+        )
         // Registro del teléfono y latido periódico para el panel web (Dispositivos).
         serviceScope.launch {
             while (isActive) {
@@ -57,14 +60,52 @@ class RibaniMonitoringService : Service() {
                 delay(INTERVALO_LATIDO_MS)
             }
         }
+        // Mantiene las alarmas al día aunque nadie abra la app. No hay avisos del
+        // servidor: la familia puede crear una toma para dentro de un minuto, y este
+        // intervalo marca cuánto tarda en enterarse el teléfono.
+        serviceScope.launch {
+            while (isActive) {
+                MedicationRepository.refrescar(applicationContext, enSegundoPlano = true)
+                delay(INTERVALO_MEDICAMENTOS_MS)
+            }
+        }
+        // La sesión puede terminar con la app cerrada: al salir deja de vigilar y de usar el GPS.
+        serviceScope.launch {
+            SessionManager(applicationContext).isLoggedIn.collect {
+                if (!MonitoreoController.debeMonitorear(applicationContext)) stopSelf()
+            }
+        }
+    }
+
+    /**
+     * El tipo `location` permite recibir ubicación con la app en segundo plano.
+     * Android lo rechaza si no hay permiso, o si el servicio arrancó sin la app
+     * abierta y no hay permiso de ubicación "todo el tiempo": entonces se sigue
+     * vigilando las caídas y la ubicación se retoma al abrir la app.
+     */
+    private fun iniciarPrimerPlano() {
+        val tipoBase = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        if (hayPermisoUbicacion()) {
+            try {
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    monitoringNotification(),
+                    tipoBase or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
+                )
+                return
+            } catch (_: SecurityException) {
+                // Sigue con el tipo base.
+            }
+        }
+        ServiceCompat.startForeground(this, NOTIFICATION_ID, monitoringNotification(), tipoBase)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Ubicaciones: solo si hay sesión con un adulto mayor autenticado.
-        // Se chequea en cada onStartCommand para detener/arrancar tras login o logout.
+        // Aplica permisos concedidos después de arrancar el servicio.
+        iniciarPrimerPlano()
         serviceScope.launch {
-            val haySesion = SessionManager(applicationContext).isLoggedIn.first()
-            if (haySesion) {
+            if (MonitoreoController.debeMonitorear(applicationContext)) {
                 arrancarEscuchaSiHaceFalta()
             } else {
                 detenerEscucha()
@@ -73,8 +114,8 @@ class RibaniMonitoringService : Service() {
         return START_STICKY
     }
 
-    private fun arrancarEscuchaSiHaceFalta() {
-        val hayPermiso = ContextCompat.checkSelfPermission(
+    private fun hayPermisoUbicacion(): Boolean =
+        ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED ||
@@ -83,7 +124,8 @@ class RibaniMonitoringService : Service() {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             ) == PackageManager.PERMISSION_GRANTED
 
-        if (!hayPermiso) return
+    private fun arrancarEscuchaSiHaceFalta() {
+        if (!hayPermisoUbicacion()) return
 
         if (escuchaUbicaciones == null) {
             UbicacionesRepository.inicializar(applicationContext)
@@ -98,6 +140,7 @@ class RibaniMonitoringService : Service() {
     }
 
     override fun onDestroy() {
+        MonitoreoEstado.marcar(activo = false)
         detenerEscucha()
         sensorManager.stop()
         serviceScope.cancel()
@@ -110,45 +153,12 @@ class RibaniMonitoringService : Service() {
     private fun showFallAlert() {
         // La alerta CAIDA se registra en el backend al detectarla (regla:
         // toda posible caída deja alerta abierta), independientemente de
-        // la confirmación del adulto en la pantalla.
+        // la confirmación del adulto en la pantalla. La cola la reintenta.
         serviceScope.launch {
-            AlertasRepository.enviarAlerta(
-                context = this@RibaniMonitoringService,
-                tipo = "CAIDA",
-                titulo = "Posible caída detectada",
-                descripcion = "RIBANI detectó una posible caída del adulto mayor " +
-                    "(caída libre, impacto, rotación e inactividad).",
-            )
+            AlertasRepository.reportarCaida(this@RibaniMonitoringService)
         }
 
-        val intent = Intent(this, FallAlertActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            FALL_ALERT_REQUEST_CODE,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Posible caída detectada")
-            .setContentText("¿Te encuentras bien?")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setAutoCancel(true)
-            .setOngoing(true)
-            .setContentIntent(pendingIntent)
-            .setFullScreenIntent(pendingIntent, true)
-            .build()
-
-
-        if (canPostNotifications()) {
-            NotificationManagerCompat.from(this).notify(ALERT_NOTIFICATION_ID, notification)
-        }
+        AlarmaCaida.mostrar(this)
     }
 
     private fun monitoringNotification(): Notification =
@@ -169,31 +179,13 @@ class RibaniMonitoringService : Service() {
                 NotificationManager.IMPORTANCE_LOW
             )
         )
-        manager.createNotificationChannel(
-            NotificationChannel(
-                ALERT_CHANNEL_ID,
-                "Alertas de emergencia",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                setBypassDnd(true)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            }
-        )
+        AlarmaCaida.crearCanal(this)
     }
-
-    private fun canPostNotifications(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
 
     private companion object {
         const val MONITORING_CHANNEL_ID = "ribani_monitoring"
-        const val ALERT_CHANNEL_ID = "ribani_emergency"
         const val NOTIFICATION_ID = 100
-        const val ALERT_NOTIFICATION_ID = 101
-        const val FALL_ALERT_REQUEST_CODE = 102
         const val INTERVALO_LATIDO_MS = 5 * 60 * 1000L
+        const val INTERVALO_MEDICAMENTOS_MS = 60 * 1000L
     }
 }

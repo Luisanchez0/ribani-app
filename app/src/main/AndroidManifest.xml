@@ -9,8 +9,11 @@
         android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicePermission" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Para seguir reportando tras reiniciar el teléfono, sin abrir la app. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -18,8 +21,10 @@
         android:name="android.permission.USE_FULL_SCREEN_INTENT"
         tools:ignore="UseFullScreenIntent" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name=".RibaniApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -56,6 +61,9 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:turnScreenOn="true"
             android:theme="@style/Theme.RIBANI" />
         <activity
             android:name=".MedicationAlarmActivity"
@@ -63,13 +71,14 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:showWhenLocked="true"
+            android:taskAffinity=""
             android:turnScreenOn="true"
             android:theme="@style/Theme.RIBANI" />
         <service
             android:name=".sensors.RibaniMonitoringService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse" >
+            android:foregroundServiceType="specialUse|location" >
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="fall detection sensor monitoring" />

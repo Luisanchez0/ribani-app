@@ -5,7 +5,7 @@ import kotlin.math.sqrt
 /**
  * Detector de caídas en dos fases (caída libre → impacto → rotación → calma).
  * Umbrales calibrados para evitar falsos positivos en la vida diaria:
- * - FREE_FALL: la aceleración total baja ~2.0 m/s² aprox. (caída libre real ~0);
+ * - FREE_FALL: la aceleración total baja ~1.5 m/s² aprox. (caída libre real ~0);
  *   un gesto brusco no baja de eso por la gravedad efectiva del eje vertical.
  * - IMPACT: pico típico de caída golpeando el suelo (un golpe suave al
  *   apoyar el teléfono queda debajo).
@@ -73,9 +73,9 @@ class FallDetector(
     }
 
     private companion object {
-        const val FREE_FALL_THRESHOLD = 2.0f
-        const val IMPACT_THRESHOLD = 30f
-        const val ROTATION_THRESHOLD = 4.0f
+        const val FREE_FALL_THRESHOLD = 1.5f
+        const val IMPACT_THRESHOLD = 35f
+        const val ROTATION_THRESHOLD = 5.0f
         const val FREE_FALL_WINDOW_MS = 1_000L
         const val INACTIVITY_MIN_MS = 1_500L
         const val INACTIVITY_MAX_MS = 10_000L

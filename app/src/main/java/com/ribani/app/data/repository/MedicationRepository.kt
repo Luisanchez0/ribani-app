@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +26,10 @@ enum class MedicationStatus {
     PENDING, TAKEN, POSTPONED, OMITTED
 }
 
+/** Una toma pospuesta conserva su hora original; `recordar_en` es cuándo avisar. */
+internal fun instanteAviso(programadaPara: String, recordarEn: String?): String =
+    recordarEn ?: programadaPara
+
 data class MedicationOccurrence(
     val id: String,
     val medicationId: String,
@@ -34,6 +39,8 @@ data class MedicationOccurrence(
     val status: MedicationStatus = MedicationStatus.PENDING,
     /** programada_para original (ISO 8601) para programar alarmas exactas. */
     val programadaIso: String? = null,
+    /** Cuándo debe sonar la alarma: al posponer difiere de programadaIso. */
+    val avisoIso: String? = programadaIso,
     /** Instrucciones del medicamento (del catálogo GET /medicamentos). */
     val instrucciones: String? = null,
 )
@@ -107,7 +114,7 @@ object MedicationRepository {
     }
 
     /** Recarga del backend: pendientes de hoy + historial reciente. */
-    suspend fun refrescar(context: Context) {
+    suspend fun refrescar(context: Context, enSegundoPlano: Boolean = false) {
         val manager = SessionManager(context)
 
         if (!manager.isLoggedIn.first()) {
@@ -117,8 +124,11 @@ object MedicationRepository {
             return
         }
 
-        // Pull-to-refresh: indicador visible durante la recarga.
-        _uiState.value = _uiState.value.copy(refrescando = true)
+        // Pull-to-refresh: indicador visible durante la recarga. La recarga periódica
+        // del servicio no lo muestra: parpadearía en pantalla cada minuto.
+        if (!enSegundoPlano) {
+            _uiState.value = _uiState.value.copy(refrescando = true)
+        }
 
         try {
             val zona = ZoneId.systemDefault()
@@ -232,6 +242,35 @@ object MedicationRepository {
     }
 
     /**
+     * Registra una toma (TOMADA u OMITIDA) desde la alarma a pantalla completa.
+     * Retorna true si se actualizó y sincronizó correctamente en el backend.
+     */
+    suspend fun registrarDesdeAlarma(
+        context: Context,
+        occurrenceId: String,
+        estado: String,
+    ): Boolean {
+        val guardada = guardarToma(occurrenceId, estado)
+        if (guardada) refrescar(context)
+        return guardada
+    }
+
+    /** PATCH /tomas/{id}. No depende de que la lista esté cargada: sirve con la app cerrada. */
+    suspend fun guardarToma(occurrenceId: String, estado: String): Boolean {
+        return try {
+            ApiClient.medicamentosService.actualizarToma(
+                occurrenceId,
+                ActualizarTomaRequest(estado = estado)
+            )
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
      * Posponer: POST /tomas/{id}/posponer — mueve la toma una vez,
      * diez minutos, dentro de la ventana original; el server la deja
      * en estado POSPUESTA (sigue dentro del grupo de pendientes).
@@ -301,6 +340,7 @@ object MedicationRepository {
                 MedicationStatus.PENDING
             },
             programadaIso = programada_para,
+            avisoIso = instanteAviso(programada_para, recordar_en),
             instrucciones = medicamento?.instrucciones,
         )
     }
@@ -344,25 +384,4 @@ object MedicationRepository {
         toma.dosis_tomada?.let { dosis ->
             "${dosis.toString().trimEnd('0', '.')} mg"
         } ?: "Dosis según indicación"
-
-    /**
-     * Registra el estado de la toma (TOMADA u OMITIDA) desde la alarma full-screen,
-     * actualiza el backend y refresca el repositorio local.
-     */
-    suspend fun registrarDesdeAlarma(
-        context: Context,
-        tomaId: String,
-        estado: String,
-    ): Boolean {
-        return try {
-            ApiClient.medicamentosService.actualizarToma(
-                tomaId,
-                ActualizarTomaRequest(estado = estado)
-            )
-            refrescar(context)
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
 }

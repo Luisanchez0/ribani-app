@@ -24,7 +24,7 @@ android {
         //   ./gradlew assembleRelease -PribaniBaseUrl=https://<dominio-del-backend>/
         val baseUrl = providers
             .gradleProperty("ribaniBaseUrl")
-            .orElse("http://192.168.100.192:3000/")
+            .orElse("http://192.168.100.63:3000/")
         buildConfigField("String", "BASE_URL", "\"${baseUrl.get()}\"")
     }
 

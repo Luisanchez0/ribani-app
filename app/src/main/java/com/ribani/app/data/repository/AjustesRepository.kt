@@ -27,6 +27,8 @@ data class AjustesUiState(
     val emailVerificado: Boolean? = null,
     /** null = no se pudo determinar (sin sesión / error backend). */
     val proteccionActiva: Boolean? = null,
+    /** Alertas sin cerrar; null = no se pudo comprobar. */
+    val alertasAbiertas: Int? = null,
     val error: String? = null,
 )
 
@@ -77,6 +79,8 @@ object AjustesRepository {
         } catch (e: Exception) {
             estado = estado.copy(proteccionActiva = null)
         }
+
+        estado = estado.copy(alertasAbiertas = AlertasRepository.contarAbiertas())
 
         _uiState.value = estado.copy(cargando = false)
     }

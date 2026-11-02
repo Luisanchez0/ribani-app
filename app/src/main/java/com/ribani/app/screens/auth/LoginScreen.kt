@@ -55,6 +55,7 @@ fun LoginScreen(
     onTwoFactorRequired: (challengeToken: String) -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
     onNavigateToRecuperar: () -> Unit = {},
+    onNavigateToActivarInvitacion: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -242,6 +243,15 @@ fun LoginScreen(
                 text = "¿Olvidaste tu contraseña?",
                 fontSize = 15.sp,
                 color = Color(0xFF444444)
+            )
+        }
+
+        TextButton(onClick = onNavigateToActivarInvitacion) {
+            Text(
+                text = "¿Te invitó un familiar? Activar mi invitación",
+                fontSize = 15.sp,
+                color = Color(0xFF006B3C),
+                fontWeight = FontWeight.SemiBold
             )
         }
 

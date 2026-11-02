@@ -17,11 +17,6 @@ interface ContactosApiService {
     ): List<ContactoResponse>
 }
 
-
-/**
- * Espejo de SELECT_CONTACTO en contactos.service.ts (Prisma snake_case):
- * id, adulto_id, nombre, parentesco, telefono, email, prioridad, activo, created_at.
- */
 data class ContactoResponse(
     val id: String,
     val adulto_id: String,
