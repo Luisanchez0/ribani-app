@@ -1,6 +1,7 @@
 package com.ribani.app
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.os.Bundle
 import android.content.Intent
 import android.os.Build
@@ -29,8 +30,10 @@ import com.ribani.app.data.remote.ApiClient
 import com.ribani.app.navigation.AppNavigation
 import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.notifications.MedicationNotificationContract
-import com.ribani.app.sensors.RibaniMonitoringService
+import com.ribani.app.sensors.MonitoreoController
 import com.ribani.app.ui.theme.RIBANITheme
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private var startWithFallAlert = false
@@ -137,8 +140,9 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_PERMISOS_INICIALES) {
-            // Sin acción: LocationScreen y las notificaciones consultan
-            // el estado real del permiso al usarse.
+            // El servicio ya arrancó sin estos permisos: que los aplique ahora,
+            // sin tener que cerrar y reabrir la app.
+            lifecycleScope.launch { MonitoreoController.sincronizar(applicationContext) }
             return
         }
         if (requestCode != REQ_PERMISO_RED_LOCAL) return
@@ -256,14 +260,35 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startMonitoringService() {
-        val serviceIntent = Intent(this, RibaniMonitoringService::class.java)
-        ContextCompat.startForegroundService(this, serviceIntent)
+        lifecycleScope.launch { MonitoreoController.sincronizar(applicationContext) }
 
         // POST_NOTIFICATIONS ya se pide de una vez junto con ubicación
         // en pedirPermisosIniciales (al abrir la app), evitando diálogos
         // duplicados.
 
         pedirPermisoAlarmasExactas()
+        pedirPermisoPantallaCompleta()
+    }
+
+    /**
+     * Android 14+: sin este permiso la alerta de caída queda como una notificación
+     * pequeña en lugar de abrirse sobre la pantalla de bloqueo.
+     */
+    private fun pedirPermisoPantallaCompleta() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+
+        val notificationManager = getSystemService(NotificationManager::class.java) ?: return
+        if (notificationManager.canUseFullScreenIntent()) return
+        try {
+            startActivity(
+                Intent(
+                    android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                    android.net.Uri.parse("package:$packageName")
+                )
+            )
+        } catch (e: Exception) {
+            // Algunos fabricantes no resuelven esta pantalla de ajustes.
+        }
     }
 
     /**

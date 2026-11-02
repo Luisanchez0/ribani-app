@@ -2,6 +2,7 @@ package com.ribani.app.screens.medication
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,12 +23,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +43,7 @@ import com.ribani.app.ui.theme.TextoSecundario
 import com.ribani.app.ui.theme.TextoAjeno
 import com.ribani.app.ui.theme.SuperficieTarjetaTintada
 import com.ribani.app.ui.theme.VerdeBotonTomar
+import com.ribani.app.ui.theme.VerdeRIBANI
 import com.ribani.app.ui.theme.Rojo
 import com.ribani.app.data.repository.MedicationStatus
 import com.ribani.app.data.repository.MedicationOccurrence
@@ -56,6 +60,10 @@ fun MedicationScreen(
     /** Pull-to-refresh: recarga tomas/medicamentos del backend. */
     onRefrescar: () -> Unit,
 ) {
+    LaunchedEffect(Unit) {
+        onRefrescar()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,21 +115,55 @@ fun MedicationScreen(
             onRefresh = onRefrescar,
             modifier = Modifier.weight(1f)
         ) {
-            if (uiState.pendingMedications.isEmpty()) {
-                ContenidoVacio(uiState)
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(uiState.pendingMedications) { occurrence ->
-                        MedicationCard(
-                            occurrence = occurrence,
-                            onClick = { onOpenDetail(occurrence.medicationId) },
-                            onTaken = { onTaken(occurrence.id) },
-                            onPostpone = { onPostpone(occurrence.id) },
-                            onOmit = { onOmit(occurrence.id) }
+            when {
+                !uiState.cargado && !uiState.refrescando && uiState.mensajeEstado != null -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 30.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No se pudieron cargar los medicamentos. Intenta de nuevo.",
+                            fontSize = 22.sp,
+                            color = Rojo,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
+                        Text(
+                            text = uiState.mensajeEstado,
+                            fontSize = 16.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+                !uiState.cargado && uiState.pendingMedications.isEmpty() -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = VerdeRIBANI)
+                    }
+                }
+                uiState.pendingMedications.isEmpty() -> {
+                    ContenidoVacio(uiState)
+                }
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(uiState.pendingMedications) { occurrence ->
+                            MedicationCard(
+                                occurrence = occurrence,
+                                onClick = { onOpenDetail(occurrence.medicationId) },
+                                onTaken = { onTaken(occurrence.id) },
+                                onPostpone = { onPostpone(occurrence.id) },
+                                onOmit = { onOmit(occurrence.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -132,11 +174,7 @@ fun MedicationScreen(
 @Composable
 private fun ContenidoVacio(uiState: MedicationUiState) {
     com.ribani.app.ui.components.ContenidoVacio(
-        mensaje = if (uiState.cargado) {
-            "¡Al día! No tienes medicamentos pendientes por hoy."
-        } else {
-            "Aún no hay medicamentos para mostrar."
-        },
+        mensaje = "¡Al día! No tienes medicamentos pendientes por hoy.",
         mensajeEstado = uiState.mensajeEstado
     )
 }

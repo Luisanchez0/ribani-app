@@ -12,6 +12,8 @@ import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.data.repository.ConfiguracionRepository
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.runBlocking
@@ -20,6 +22,10 @@ import kotlinx.coroutines.runBlocking
 object MedicationAlarmScheduler {
 
     private const val REQUEST_CODE_BASE = 3000
+    private const val REQUEST_CODE_RECARGA = 2999
+    private const val AVISADAS = "avisadas"
+    const val EXTRA_AVISO_ISO = "extra_aviso_iso"
+    private val HORA_RECARGA = LocalTime.of(0, 15)
     /** Countdown visual máximo en pantalla (segundos). */
     private const val COUNTDOWN_VISUAL_MAX_SEG = 60
 
@@ -33,29 +39,74 @@ object MedicationAlarmScheduler {
         val anteriores = preferences.getStringSet("ids", emptySet()).orEmpty().toSet()
         val actuales = pendientes.map { it.id }.toSet()
         anteriores.forEach { cancelar(context, alarmManager, it); if (it !in actuales) MedicationAlarmNotifications.cancelar(context, it) }
-        preferences.edit().putStringSet("ids", pendientes.map { it.id }.toSet()).apply()
+        preferences.edit()
+            .putStringSet("ids", pendientes.map { it.id }.toSet())
+            // Los avisos de tomas ya atendidas no hacen falta.
+            .putStringSet(
+                AVISADAS,
+                preferences.getStringSet(AVISADAS, emptySet()).orEmpty()
+                    .filter { it.substringBefore('@') in actuales }
+                    .toSet(),
+            )
+            .apply()
 
         // Cancela alarmas previas para no duplicar notificaciones.
         pendientes.forEach { cancelar(context, alarmManager, it.id) }
 
         pendientes.forEach { programarUna(context, it, usuarioId) }
+        programarRecargaDiaria(context)
     }
+
+    /**
+     * Las tomas se generan por día en el servidor (00:05 hora de CDMX): sin esta
+     * alarma, las de mañana no sonarían si nadie abre la app.
+     */
+    fun programarRecargaDiaria(context: Context) {
+        val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return
+        val zona = ZoneId.systemDefault()
+        val cuando = LocalDate.now(zona).plusDays(1)
+            .atTime(HORA_RECARGA)
+            .atZone(zona)
+            .toInstant()
+            .toEpochMilli()
+        alarmManager.setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            cuando,
+            recargaPendingIntent(context, PendingIntent.FLAG_UPDATE_CURRENT)!!,
+        )
+    }
+
+    private fun recargaPendingIntent(context: Context, flags: Int): PendingIntent? =
+        PendingIntent.getBroadcast(
+            context,
+            REQUEST_CODE_RECARGA,
+            Intent(context, MedicationAlarmReceiver::class.java)
+                .setAction(MedicationNotificationContract.ACTION_RECARGAR_TOMAS),
+            flags or PendingIntent.FLAG_IMMUTABLE,
+        )
 
     /** Reprograma una toma verificada, incluso al recibir una alarma de otro proceso. */
     fun programarUna(context: Context, toma: MedicationOccurrence, usuarioId: String) {
         if (!ConfiguracionRepository.recordatoriosHabilitados(context, usuarioId)) return
         val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return
         val ahora = Instant.now()
-        val iso = toma.programadaIso ?: return
+        val iso = toma.avisoIso ?: return
         val trigger = runCatching { Instant.parse(iso) }.getOrNull() ?: return
-        if (!trigger.isAfter(ahora)) return // ya venció: la registra el usuario
 
         val preferences = context.getSharedPreferences("ribani_alarmas", Context.MODE_PRIVATE)
+        val decision = decidirAviso(
+            avisoMs = trigger.toEpochMilli(),
+            ahoraMs = ahora.toEpochMilli(),
+            yaAvisada = claveAviso(toma.id, iso) in preferences.getStringSet(AVISADAS, emptySet()).orEmpty(),
+        )
+        if (decision == DecisionAviso.Ignorar) return
+
         preferences.edit().putStringSet("ids", preferences.getStringSet("ids", emptySet()).orEmpty() + toma.id).apply()
 
         val intent = Intent(context, MedicationAlarmReceiver::class.java).apply {
             action = MedicationNotificationContract.ACTION_OPEN_MEDICATION
             putExtra(MedicationNotificationContract.EXTRA_TOMA_ID, toma.id)
+            putExtra(EXTRA_AVISO_ISO, iso)
             putExtra("usuario_id", usuarioId)
             putExtra(
                 MedicationAlarmNotifications.EXTRA_NOMBRE_MEDICAMENTO, toma.name
@@ -76,6 +127,12 @@ object MedicationAlarmScheduler {
                 MedicationAlarmNotifications.EXTRA_VENTANA_SEGUNDOS,
                 COUNTDOWN_VISUAL_MAX_SEG
             )
+        }
+
+        if (decision == DecisionAviso.AvisarAhora) {
+            // El receptor la marca como avisada: la siguiente recarga no repite.
+            context.sendBroadcast(intent)
+            return
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -108,6 +165,20 @@ object MedicationAlarmScheduler {
             )
         }
     }
+
+    /** La alarma ya sonó para esta hora; si se pospone, la hora cambia y vuelve a sonar. */
+    fun marcarAvisada(context: Context, tomaId: String, iso: String) {
+        val preferences = context.getSharedPreferences("ribani_alarmas", Context.MODE_PRIVATE)
+        // commit: una recarga simultánea no debe volver a disparar la alarma.
+        preferences.edit()
+            .putStringSet(
+                AVISADAS,
+                preferences.getStringSet(AVISADAS, emptySet()).orEmpty() + claveAviso(tomaId, iso),
+            )
+            .commit()
+    }
+
+    private fun claveAviso(tomaId: String, iso: String) = "$tomaId@$iso"
 
     /**
      * Android 12+: setAlarmClock requiere USE_EXACT_ALARM o la aprobación
@@ -143,8 +214,9 @@ object MedicationAlarmScheduler {
     fun cancelarTodas(context: Context) {
         val preferences = context.getSharedPreferences("ribani_alarmas", Context.MODE_PRIVATE)
         val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return
+        recargaPendingIntent(context, PendingIntent.FLAG_NO_CREATE)?.let { alarmManager.cancel(it) }
         preferences.getStringSet("ids", emptySet()).orEmpty().toSet().forEach { cancelar(context, alarmManager, it); MedicationAlarmNotifications.cancelar(context, it) }
-        preferences.edit().remove("ids").apply()
+        preferences.edit().remove("ids").remove(AVISADAS).apply()
     }
 
     private fun requestCodeDe(tomaId: String): Int =

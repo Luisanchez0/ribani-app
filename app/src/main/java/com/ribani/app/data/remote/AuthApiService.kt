@@ -18,13 +18,11 @@ interface AuthApiService {
     @POST("auth/logout")
     suspend fun logout(@Body body: RefreshRequest): LogoutResponse
 
-    // Requiere header Authorization (lo añade AuthInterceptor)
     @GET("auth/me")
     suspend fun me(): MeResponse
 
     // ----- Seguridad en dos pasos (2FA) - requieren Authorization -----
     // El setup del QR lo hace el familiar desde su panel web
-    // (POST /usuarios/{id}/2fa/setup); la app solo verifica y desactiva.
 
     @POST("auth/2fa/verify")
     suspend fun verifyTwoFactor(@Body body: VerifyTwoFactorRequest): VerifyTwoFactorResponse
@@ -44,4 +42,14 @@ interface AuthApiService {
     /** POST /auth/reset-password: cambia la contraseña con el código. */
     @POST("auth/reset-password")
     suspend fun resetPassword(@Body body: ResetPasswordRequest): MensajeResponse
+
+    // ----- Activación de una cuenta invitada (públicos, sin Authorization) -----
+
+    /** POST /familiares/invitaciones/solicitar-codigo: manda el código por correo. */
+    @POST("familiares/invitaciones/solicitar-codigo")
+    suspend fun solicitarCodigoInvitacion(@Body body: SolicitarResetRequest): MensajeResponse
+
+    /** POST /familiares/invitaciones/completar: activa la cuenta con el código. */
+    @POST("familiares/invitaciones/completar")
+    suspend fun completarInvitacion(@Body body: ResetPasswordRequest): MensajeResponse
 }

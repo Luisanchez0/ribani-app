@@ -119,10 +119,33 @@ object ApiClient {
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
 
-        sessionManager?.let {
-            builder.addInterceptor(AuthInterceptor(it))
-        }
+        // RibaniApp llama a init() al crear el proceso: un cliente sin token
+        // quedaría en caché y provocaría 401 hasta matar la app.
+        val sesion = checkNotNull(sessionManager) { "ApiClient.init() no se ha llamado." }
+        builder.addInterceptor(
+            AuthInterceptor(AlmacenTokensSesion(sesion)) { refreshToken ->
+                authRefreshService.refresh(RefreshRequest(refreshToken))
+            },
+        )
 
         builder.build()
+    }
+
+    /**
+     * Cliente aparte para renovar el token: con el principal, las peticiones que
+     * esperan la renovación podrían ocupar todos sus hilos y bloquearla.
+     */
+    private val authRefreshService: AuthApiService by lazy {
+        val cliente = OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .build()
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(cliente)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AuthApiService::class.java)
     }
 }

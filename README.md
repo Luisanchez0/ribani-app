@@ -14,8 +14,19 @@ Aplicación Jetpack Compose para el adulto mayor. Consume la API REST de
 - Ajustes propios con `GET/PATCH /configuracion`, usando JWT. Interruptores de
   notificaciones y medicamentos persistidos, familiares vinculados, acceso a
   invitaciones, sonido del dispositivo y configuración 2FA.
-- SOS y alertas de caída esperan la respuesta de la API y conservan errores para
-  reintentar. El indicador de monitoreo refleja el servicio local.
+- El botón SOS envía la alerta al pulsarlo y muestra si llegó; se puede cancelar
+  si fue sin querer. SOS y caídas pasan por una cola persistente con reintentos:
+  sobreviven a cerrar la pantalla, a perder la red y a que muera el proceso. Lo
+  pendiente caduca a las 24 h para no avisar de una emergencia antigua.
+- El inicio solo afirma lo comprobado: servicio y sensores locales, vínculo con
+  el familiar, alertas abiertas y alertas por enviar.
+- El monitoreo corre solo con sesión de ADULTO_MAYOR. Arranca al iniciar sesión,
+  al abrir la app y al reiniciar el teléfono, y se detiene al terminar la sesión.
+  Reporta ubicación en segundo plano; tras un reinicio sin abrir la app requiere
+  el permiso "Permitir todo el tiempo", que se solicita una vez desde el inicio.
+- Las tomas se recargan cada minuto y a las 00:15, sin necesidad de abrir la app.
+  Una toma descubierta ya vencida avisa una vez si no pasaron 15 minutos. La alarma
+  suena hasta 2 minutos sobre la pantalla de bloqueo o hasta que se responde.
 
 Las alarmas verifican usuario, estado de la toma, medicamento y preferencias
 antes de mostrar información; si no pueden verificar, muestran un aviso genérico.
@@ -24,8 +35,8 @@ Un aviso cuyo horario cambió se reprograma con la información consultada.
 En Android 17 (SDK 37), la conexión al backend por una IP privada requiere
 `ACCESS_LOCAL_NETWORK`. La app lo solicita antes de iniciar llamadas y permite
 concederlo desde Ajustes si fue rechazado. Esto es adicional a `INTERNET`.
-Para el equipo actual se conserva `http://192.168.100.63:3000/` en ApiClient.
-Cambiar la constante requiere volver a compilar e instalar la app.
+La URL del backend se fija al compilar: por defecto la de `app/build.gradle.kts`,
+o la indicada con `-PribaniBaseUrl=http://<ip-del-pc>:3000/`.
 
 Con un dispositivo conectado y el servidor iniciado, se puede comprobar la
 conexión desde el proceso de la app, sin iniciar sesión ni escribir en la BD:
@@ -40,7 +51,7 @@ instalar previamente el APK de pruebas y aceptar el permiso de red local.
 ## Desarrollo y comprobaciones
 
 Requiere Android SDK y Java compatibles con el Gradle existente. Revisar la URL
-del backend en `data/remote/ApiClient.kt` según el dispositivo utilizado. No
+del backend en `app/build.gradle.kts` según el dispositivo utilizado. No
 guardar tokens, contraseñas ni credenciales de Meta en la app.
 
 ```powershell

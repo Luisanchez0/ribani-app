@@ -1,6 +1,5 @@
 package com.ribani.app
 
-import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -8,19 +7,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.ribani.app.data.remote.ApiClient
 import com.ribani.app.data.remote.MedicamentoResponse
 import com.ribani.app.data.local.SessionManager
-import androidx.compose.material3.Text
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.notifications.MedicationAlarmNotifications
 import com.ribani.app.screens.medication.MedicationAlarmScreen
+import com.ribani.app.screens.medication.MedicationAlarmVerificando
 import com.ribani.app.ui.theme.RIBANITheme
 
 /**
@@ -31,6 +27,8 @@ import com.ribani.app.ui.theme.RIBANITheme
  * (id del backend) para poder registrar TOMADA/OMITIDA directamente.
  */
 class MedicationAlarmActivity : ComponentActivity() {
+    private var notificacionActual = DEFAULT_NOTIFICATION_ID
+
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -57,10 +55,18 @@ class MedicationAlarmActivity : ComponentActivity() {
             )
         }
 
+        // Encendida mientras suena; después se apaga sola para no agotar la batería.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        lifecycleScope.launch {
+            delay(MedicationAlarmNotifications.DURACION_ALARMA_MS)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
         val notificationId = intent?.getIntExtra(
             MedicationAlarmNotifications.EXTRA_NOTIFICATION_ID,
             DEFAULT_NOTIFICATION_ID
         ) ?: DEFAULT_NOTIFICATION_ID
+        notificacionActual = notificationId
 
         val tomaId = intent?.getStringExtra(EXTRA_TOMA_ID)
         val nombre = intent?.getStringExtra(EXTRA_NOMBRE_MEDICAMENTO).orEmpty()
@@ -93,10 +99,10 @@ class MedicationAlarmActivity : ComponentActivity() {
                     SessionManager(applicationContext).isLoggedIn.collect { if (!it) finish() }
                 }
                 if (medicamento == null) {
-                    Column(Modifier.padding(24.dp)) {
-                        Text(errorVerificacion ?: "Verificando el recordatorio…")
-                        if (errorVerificacion != null) OutlinedButton(onClick = { intento++ }) { Text("Volver a intentar") }
-                    }
+                    MedicationAlarmVerificando(
+                        error = errorVerificacion,
+                        onReintentar = { intento++ },
+                    )
                     return@RIBANITheme
                 }
                 var ocupado by remember { mutableStateOf(false) }
@@ -131,10 +137,15 @@ class MedicationAlarmActivity : ComponentActivity() {
         }
     }
 
+    /** Al salir sin responder (botón Atrás) la alarma no debe seguir sonando. */
+    override fun onDestroy() {
+        if (isFinishing) dismissNotification(notificacionActual)
+        super.onDestroy()
+    }
+
     /** Cancela la notificación de la alarma al atenderla en pantalla. */
     private fun dismissNotification(notificationId: Int) {
-        getSystemService(NotificationManager::class.java)
-            .cancel(notificationId)
+        MedicationAlarmNotifications.detener(this, notificationId)
     }
 
     private companion object {

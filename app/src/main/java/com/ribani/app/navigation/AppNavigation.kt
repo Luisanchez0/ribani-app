@@ -33,12 +33,16 @@ import com.ribani.app.data.repository.AjustesRepository
 import com.ribani.app.data.repository.MedicationRepository
 import com.ribani.app.data.repository.SessionValidation
 import com.ribani.app.screens.auth.LoginScreen
+import com.ribani.app.screens.auth.ActivarInvitacionScreen
 import com.ribani.app.screens.auth.RecuperarPasswordScreen
 import com.ribani.app.screens.auth.TwoFactorLoginScreen
 import com.ribani.app.screens.auth.RegisterScreen
 import com.ribani.app.screens.contacts.ContactsScreen
-import com.ribani.app.screens.fall.FallAlertScreen
+import com.ribani.app.screens.fall.AlertaCaidaScreen
+import com.ribani.app.screens.fall.SosScreen
 import com.ribani.app.screens.home.HomeScreen
+import com.ribani.app.screens.home.PermisoUbicacionFondoDialog
+import com.ribani.app.screens.home.calcularEstadoInicio
 import com.ribani.app.screens.invitaciones.InvitacionesScreen
 import com.ribani.app.screens.location.LocationScreen
 import com.ribani.app.screens.medication.MedicationDetailScreen
@@ -47,8 +51,15 @@ import com.ribani.app.screens.medication.MedicationScreen
 import com.ribani.app.screens.settings.SettingsScreen
 import com.ribani.app.screens.settings.TwoFactorSettingsScreen
 import com.ribani.app.sensors.FallAlertEvents
+import com.ribani.app.sensors.MonitoreoController
+import com.ribani.app.sensors.MonitoreoEstado
+import com.ribani.app.ui.theme.FondoApp
+import com.ribani.app.ui.theme.VerdeRIBANI
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+private const val INTERVALO_ESTADO_INICIO_MS = 60_000L
 
 const val LOGIN_ROUTE = "login?cuentaCreada={cuentaCreada}"
 const val REGISTER_ROUTE = "register"
@@ -56,6 +67,8 @@ const val REGISTER_ROUTE = "register"
 const val TWO_FACTOR_LOGIN_ROUTE = "login/twofactor/{challengeToken}"
 // Recuperación de contraseña (código por correo)
 const val RECUPERAR_PASSWORD_ROUTE = "login/recuperar"
+// Activación de una cuenta creada por invitación (código por correo)
+const val ACTIVAR_INVITACION_ROUTE = "login/invitacion"
 
 @Composable
 fun AppNavigation(
@@ -70,12 +83,18 @@ fun AppNavigation(
     val medicationUiState = MedicationRepository.uiState.collectAsState().value
     val ajustesUiState = AjustesRepository.uiState.collectAsState().value
 
+    val alertasPorEnviar by AlertasRepository.porEnviar.collectAsState()
+    val monitoreoActivo by MonitoreoEstado.activo.collectAsState()
+    val sensoresDisponibles by MonitoreoEstado.sensoresDisponibles.collectAsState()
+
     // Verificación de sesión guardada antes de decidir la pantalla inicial
     var sessionChecked by remember { mutableStateOf(false) }
+    // Solo decide la pantalla inicial: cambiarla después reiniciaría la navegación.
     var isLoggedIn by remember { mutableStateOf(false) }
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+    val sesionActiva by sessionManager.isLoggedIn.collectAsState(initial = null)
 
     LaunchedEffect(Unit) {
-        val sessionManager = SessionManager(context)
         val hasLocalSession = sessionManager.isLoggedIn.first()
 
         if (!hasLocalSession) {
@@ -92,11 +111,6 @@ fun AppNavigation(
                 is SessionValidation.Valid -> isLoggedIn = true
                 is SessionValidation.Invalid -> {
                     sessionManager.clear()
-                    // Sesión revocada: estado vacío (sin datos demo) y
-                    // alarmas de la sesión anterior canceladas.
-                    MedicationRepository.limpiarSesion(context)
-                    // Resetea también el estado de Ajustes/protección.
-                    AjustesRepository.limpiar()
                     isLoggedIn = false
                 }
                 is SessionValidation.Offline -> isLoggedIn = true
@@ -123,14 +137,29 @@ fun AppNavigation(
         }
     }
 
-    // Medicamentos: carga datos reales del backend al abrir la pestañas
-    // (GET /tomas del dia + historial), como MedicaScreen de la web.
-    // Ajustes: consulta /auth/me y /familiares/mis-familiares para saber si
-    // el adulto tiene un FAMILIAR_ENCARGADO con vínculo ACTIVA (protección).
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            MedicationRepository.initialize(context)
-            AjustesRepository.cargar(context)
+    // Sigue la sesión real, venga de un login, de cerrar sesión o de que el
+    // servidor la haya revocado con la app abierta.
+    LaunchedEffect(sesionActiva, sessionChecked) {
+        if (!sessionChecked) return@LaunchedEffect
+        when (sesionActiva) {
+            true -> {
+                MonitoreoController.sincronizar(context)
+                // Carga las tomas y programa las alarmas sin esperar a abrir Medicinas.
+                MedicationRepository.initialize(context)
+            }
+            false -> {
+                MedicationRepository.limpiarSesion(context)
+                AjustesRepository.limpiar()
+                val ruta = navController.currentDestination?.route
+                if (ruta != null && !ruta.startsWith("login") && ruta != REGISTER_ROUTE) {
+                    navController.navigate("login") {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
+                    }
+                }
+            }
+            null -> Unit
         }
     }
 
@@ -146,20 +175,21 @@ fun AppNavigation(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(FondoApp),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color(0xFF006B3C))
+            CircularProgressIndicator(color = VerdeRIBANI)
         }
         return
     }
 
     val showBottomBar = currentRoute?.startsWith("login") != true &&
         currentRoute != REGISTER_ROUTE &&
-        currentRoute != "fall"
+        currentRoute != "fall" &&
+        currentRoute != "sos"
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = FondoApp,
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
@@ -183,7 +213,7 @@ fun AppNavigation(
             },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(FondoApp)
                 .padding(innerPadding)
         ) {
             composable(
@@ -220,6 +250,11 @@ fun AppNavigation(
                         navController.navigate(RECUPERAR_PASSWORD_ROUTE) {
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToActivarInvitacion = {
+                        navController.navigate(ACTIVAR_INVITACION_ROUTE) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -252,6 +287,19 @@ fun AppNavigation(
                 )
             }
 
+            composable(route = ACTIVAR_INVITACION_ROUTE) {
+                ActivarInvitacionScreen(
+                    onActivada = {
+                        navController.navigate("login?cuentaCreada=true") {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable(route = REGISTER_ROUTE) {
                 RegisterScreen(
                     onRegisterSuccess = {
@@ -266,9 +314,19 @@ fun AppNavigation(
             }
 
             composable("home") {
+                // Se recarga al volver (p. ej. tras aceptar una invitación) y
+                // periódicamente: la familia puede atender una alerta mientras se mira.
+                // También en cuanto la cola cambia, para contar la alerta recién enviada.
+                LaunchedEffect(alertasPorEnviar) {
+                    while (true) {
+                        AjustesRepository.cargar(context)
+                        delay(INTERVALO_ESTADO_INICIO_MS)
+                    }
+                }
+                PermisoUbicacionFondoDialog()
                 HomeScreen(
                     onSosClick = {
-                        navController.navigate("fall") {
+                        navController.navigate("sos") {
                             launchSingleTop = true
                         }
                     },
@@ -279,11 +337,20 @@ fun AppNavigation(
                             launchSingleTop = true
                         }
                     },
-                    isMonitoring = ajustesUiState.proteccionActiva != false,
-                    // null = sin aún respuesta del backend / offline:
-                    // se muestra el estado por defecto (activado).
-                    proteccionActiva = ajustesUiState.proteccionActiva
+                    estado = calcularEstadoInicio(
+                        proteccionActiva = ajustesUiState.proteccionActiva,
+                        cargando = ajustesUiState.cargando,
+                        monitoreoActivo = monitoreoActivo,
+                        sensoresDisponibles = sensoresDisponibles,
+                        alertasAbiertas = ajustesUiState.alertasAbiertas,
+                        alertasPorEnviar = alertasPorEnviar,
+                    ),
+                    sosBloqueado = ajustesUiState.proteccionActiva == false
                 )
+            }
+
+            composable("sos") {
+                SosScreen(onCerrar = { navController.popBackStack() })
             }
 
             composable("medication") {
@@ -344,18 +411,10 @@ fun AppNavigation(
                 SettingsScreen(
                     onLogout = {
                         scope.launch {
-                            AuthRepository(SessionManager(context)).logout()
-                            // Limpia medicamentos e historial (incluido el
-                            // estado local de aplazamientos) y cancela las
-                            // alarmas de la sesión anterior.
-                            MedicationRepository.limpiarSesion(context)
-                            // Resetea el estado de Ajustes/protección.
-                            AjustesRepository.limpiar()
-                            navController.navigate("login") {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    inclusive = true
-                                }
-                            }
+                            AlertasRepository.limpiar()
+                            // Al borrar la sesión, el efecto de sesionActiva limpia
+                            // los datos, cancela alarmas y lleva al login.
+                            AuthRepository(sessionManager).logout()
                         }
                     },
                     onOpenTwoFactor = {
@@ -379,33 +438,7 @@ fun AppNavigation(
             }
 
             composable("fall") {
-                FallAlertScreen(
-                    onOkay = {
-                        navController.popBackStack()
-                    },
-                    onNeedHelp = {
-                        // "¡NECESITO AYUDA!" desde la navegación interna:
-                        // igual que en FallAlertActivity, escala la CAIDA
-                        // abierta a EN_ATENCION y crea una SOS explícita
-                        // (POST /alertas tipo SOS) para el panel del familiar.
-                        // Es fire-and-forget: si el backend no responde, la
-                        // alerta CAIDA sigue abierta y al familiar ya le llegó.
-                        scope.launch {
-                            AlertasRepository.escalarAlerta()
-                            AlertasRepository.enviarAlerta(
-                                context = context,
-                                tipo = "SOS",
-                                titulo = "El adulto mayor pide ayuda",
-                                descripcion =
-                                    "Presionó ¡NECESITO AYUDA! tras una alerta de posible caída.",
-                            )
-                        }
-                        navController.popBackStack()
-                    },
-                    onTiempoAgotado = {
-                        navController.popBackStack()
-                    }
-                )
+                AlertaCaidaScreen(onCerrar = { navController.popBackStack() })
             }
         }
     }

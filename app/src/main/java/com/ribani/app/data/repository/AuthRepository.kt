@@ -219,6 +219,35 @@ class AuthRepository(private val sessionManager: SessionManager) {
         }
     }
 
+    /**
+     * Pide el código que activa una cuenta invitada. El backend responde con un
+     * mensaje genérico: Success no garantiza que el correo tenga una invitación.
+     */
+    suspend fun solicitarCodigoInvitacion(email: String): ResetResult {
+        return try {
+            val response = api.solicitarCodigoInvitacion(SolicitarResetRequest(email.trim()))
+            ResetResult.Success(response.mensaje ?: "Código enviado a tu correo.")
+        } catch (e: Exception) {
+            ResetResult.Error(ApiErrorParser.getErrorMessage(e))
+        }
+    }
+
+    /** Activa la cuenta invitada y su vínculo con el código del correo. */
+    suspend fun completarInvitacion(email: String, codigo: String, password: String): ResetResult {
+        return try {
+            val response = api.completarInvitacion(
+                ResetPasswordRequest(
+                    email = email.trim(),
+                    codigo = codigo.trim(),
+                    password = password,
+                ),
+            )
+            ResetResult.Success(response.mensaje ?: "Tu cuenta está activa.")
+        } catch (e: Exception) {
+            ResetResult.Error(ApiErrorParser.getErrorMessage(e))
+        }
+    }
+
     suspend fun logout(): Boolean {
         return try {
             val refreshToken = sessionManager.refreshToken()
